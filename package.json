@@ -4,13 +4,15 @@
   "license": "MIT",
   "scripts": {},
   "private": true,
-  "dependencies": {},
   "devDependencies": {
+    "@nestjs/schematics": "^11.0.0",
     "@nx/js": "21.4.1",
+    "@nx/nest": "21.4.1",
     "@nx/workspace": "21.4.1",
     "@swc-node/register": "~1.9.1",
     "@swc/core": "~1.5.7",
     "@swc/helpers": "~0.5.11",
     "nx": "21.4.1"
-  }
+  },
+  "dependencies": {}
 }
