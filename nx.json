@@ -1,10 +1,7 @@
 {
   "$schema": "./node_modules/nx/schemas/nx-schema.json",
   "namedInputs": {
-    "default": [
-      "{projectRoot}/**/*",
-      "sharedGlobals"
-    ],
+    "default": ["{projectRoot}/**/*", "sharedGlobals"],
     "production": [
       "default",
       "!{projectRoot}/.eslintrc.json",
@@ -25,7 +22,8 @@
           "buildDepsName": "build-deps",
           "watchDepsName": "watch-deps"
         }
-      }
+      },
+      "exclude": ["common/core/*"]
     },
     {
       "plugin": "@nx/webpack/plugin",
@@ -50,6 +48,34 @@
         "buildTarget": "docker:build",
         "runTarget": "docker:run"
       }
+    },
+    {
+      "plugin": "@nx/js/typescript",
+      "include": ["common/core/*"],
+      "options": {
+        "typecheck": {
+          "targetName": "typecheck"
+        }
+      }
     }
-  ]
+  ],
+  "generators": {
+    "@nx/nest:application": {
+      "e2eTestRunner": "none",
+      "unitTestRunner": "none"
+    },
+    "@nx/nest:library": {
+      "unitTestRunner": "none"
+    },
+    "@nx/js:library": {
+      "unitTestRunner": "none"
+    },
+    "@nx/react:application": {
+      "e2eTestRunner": "none",
+      "unitTestRunner": "none"
+    },
+    "@nx/react:library": {
+      "unitTestRunner": "none"
+    }
+  }
 }

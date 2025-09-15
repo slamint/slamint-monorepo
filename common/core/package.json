@@ -1,0 +1,39 @@
+{
+  "name": "@slamint/core",
+  "version": "0.0.1",
+  "private": true,
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "@slamint/source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "dependencies": {
+    "tslib": "^2.3.0"
+  },
+  "nx": {
+    "targets": {
+      "build": {
+        "executor": "@nx/js:tsc",
+        "outputs": [
+          "{options.outputPath}"
+        ],
+        "options": {
+          "outputPath": "dist/common/core",
+          "tsConfig": "common/core/tsconfig.lib.json",
+          "packageJson": "common/core/package.json",
+          "main": "common/core/src/index.ts",
+          "assets": [
+            "common/core/*.md"
+          ]
+        }
+      }
+    }
+  }
+}

@@ -1,6 +1,8 @@
 {
   "compilerOptions": {
+    "baseUrl": ".",
     "composite": true,
+    "declaration": true,
     "declarationMap": true,
     "emitDeclarationOnly": true,
     "importHelpers": true,
@@ -16,6 +18,9 @@
     "skipLibCheck": true,
     "strict": true,
     "target": "es2022",
-    "customConditions": ["@slamint-monorepo/source"]
+    "customConditions": ["@slamint/source"],
+    "paths": {
+      "@slamint/core": ["common/core/src/index.ts"]
+    }
   }
 }

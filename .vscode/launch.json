@@ -4,24 +4,36 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Debug @slamint-monorepo/slamint with Nx",
+      "name": "Debug @slamint/profile with Nx",
       "runtimeExecutable": "pnpm exec",
-      "runtimeArgs": [
-        "nx",
-        "serve",
-        "@slamint-monorepo/slamint"
-      ],
+      "runtimeArgs": ["nx", "serve", "@slamint/profile"],
       "env": {
         "NODE_OPTIONS": "--inspect=9229"
       },
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
-      "skipFiles": [
-        "<node_internals>/**"
-      ],
+      "skipFiles": ["<node_internals>/**"],
       "sourceMaps": true,
       "outFiles": [
-        "${workspaceFolder}/apps/slamint/dist/**/*.(m|c|)js",
+        "${workspaceFolder}/api/profile/dist/**/*.(m|c|)js",
+        "!**/node_modules/**"
+      ]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug @slamint/api-gateway with Nx",
+      "runtimeExecutable": "pnpm exec",
+      "runtimeArgs": ["nx", "serve", "@slamint/api-gateway"],
+      "env": {
+        "NODE_OPTIONS": "--inspect=9230"
+      },
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": ["<node_internals>/**"],
+      "sourceMaps": true,
+      "outFiles": [
+        "${workspaceFolder}/api/api-gateway/dist/**/*.(m|c|)js",
         "!**/node_modules/**"
       ]
     }

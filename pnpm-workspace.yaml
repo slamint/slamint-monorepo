@@ -1,5 +1,5 @@
 packages:
-  - "apps/*"
-
+  - 'api/*'
+  - 'common/*'
 autoInstallPeers: true
 strictPeerDependencies: false

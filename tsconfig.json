@@ -4,10 +4,13 @@
   "files": [],
   "references": [
     {
-      "path": "./apps/slamint-e2e"
+      "path": "./api/profile"
     },
     {
-      "path": "./apps/slamint"
+      "path": "./api/api-gateway"
+    },
+    {
+      "path": "./common/core"
     }
   ]
 }
