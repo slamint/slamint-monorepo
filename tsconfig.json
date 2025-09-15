@@ -8,6 +8,9 @@
     },
     {
       "path": "./common/core"
+    },
+    {
+      "path": "./api/users"
     }
   ]
 }

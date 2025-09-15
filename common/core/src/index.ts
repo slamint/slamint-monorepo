@@ -10,3 +10,9 @@ export * from './domain';
 
 // config
 export * from './config/config.module';
+
+// registries
+export * from './registries/microservice.registery';
+
+// commands
+export * from './gateway-commands';

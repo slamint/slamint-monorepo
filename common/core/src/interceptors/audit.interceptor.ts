@@ -29,6 +29,8 @@ export class AuditInspector implements NestInterceptor {
         const user = req.user ?? {};
         const roles = user.realm_access?.roles;
         // fire-and-forget inside tap; don't make tap callback `async`
+        if (req.method == 'GET') return;
+
         void this.auditService.write({
           userId: user.sub,
           roles: Array.isArray(roles) ? roles.join(',') : undefined,

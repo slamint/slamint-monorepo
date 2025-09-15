@@ -8,13 +8,15 @@ import {
   AuditController,
   AuditLog,
   ConfigKey,
+  MicroserviceClientsModule,
 } from '@slamint/core';
 import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { AppController } from './app.controller';
-import { AppService } from './app.service';
 
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+
+import { UsersGatewayController } from './controllers';
 
 @Module({
   imports: [
@@ -33,11 +35,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
       }),
     }),
     TypeOrmModule.forFeature([AuditLog]),
+    MicroserviceClientsModule,
   ],
-  controllers: [AppController, AuditController],
+  controllers: [AppController, AuditController, UsersGatewayController],
   providers: [
     AuditService,
-    AppService,
     {
       provide: APP_INTERCEPTOR,
       useClass: ResponseInterceptor,
