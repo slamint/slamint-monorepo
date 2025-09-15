@@ -145,8 +145,6 @@ importers:
         specifier: workspace:*
         version: link:../../common/core
 
-  api/profile: {}
-
   common/core:
     dependencies:
       tslib:

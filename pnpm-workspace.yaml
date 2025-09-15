@@ -1,5 +1,11 @@
 packages:
-  - 'api/*'
-  - 'common/*'
+  - api/*
+  - common/*
 autoInstallPeers: true
+onlyBuiltDependencies:
+  - '@nestjs/core'
+  - '@parcel/watcher'
+  - '@swc/core'
+  - nx
+  - unrs-resolver
 strictPeerDependencies: false

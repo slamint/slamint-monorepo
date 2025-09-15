@@ -4,9 +4,6 @@
   "files": [],
   "references": [
     {
-      "path": "./api/profile"
-    },
-    {
       "path": "./api/api-gateway"
     },
     {
