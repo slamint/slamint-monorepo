@@ -1,11 +1,27 @@
 import { Controller, Get } from '@nestjs/common';
-
+import { Public } from './auth/roles.decorator';
+import { ApiTags } from '@nestjs/swagger';
+import {
+  ApiOkResponseEnvelope,
+  ApiServerGatewayTimeout,
+  HealthDto,
+} from '@slamint/core';
+@ApiTags('Health Checks')
 @Controller('health')
 export class AppController {
-  @Get('live') liveness() {
+  @Public()
+  @ApiOkResponseEnvelope(HealthDto)
+  @ApiServerGatewayTimeout()
+  @Get('live')
+  liveness() {
     return { status: 'ok' };
   }
-  @Get('ready') readiness() {
+
+  @Public()
+  @ApiOkResponseEnvelope(HealthDto)
+  @ApiServerGatewayTimeout()
+  @Get('ready')
+  readiness() {
     return { status: 'ok' };
   }
 }

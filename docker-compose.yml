@@ -9,13 +9,28 @@ services:
     environment:
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
+
+      KC_DB: postgres
+      KC_DB_URL: "jdbc:postgresql://postgres:5432/sla_mint"
+      KC_DB_USERNAME: sla_mint
+      KC_DB_PASSWORD: P@ssword1
+      # Optional but handy for health checks/metrics
+      KC_HEALTH_ENABLED: "true"
+      KC_METRICS_ENABLED: "true"
+      KC_HTTP_ENABLED: "false"
     ports:
       - "8080:8080"
   postgres:
     image: postgres:16
+    container_name: postgres
     environment:
       POSTGRES_USER: sla_mint
       POSTGRES_PASSWORD: P@ssword1
       POSTGRES_DB: sla_mint
     ports: ["5432:5432"]
     volumes: [slamint:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sla_mint -d sla_mint"]
+      interval: 5s
+      timeout: 5s
+      retries: 20

@@ -16,3 +16,9 @@ export * from './registries/microservice.registery';
 
 // commands
 export * from './gateway-commands';
+
+// helper
+export * from './helpers';
+
+// DTOs
+export * from './dtos';
