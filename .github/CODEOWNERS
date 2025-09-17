@@ -1,11 +1,2 @@
 # Default: you + teams own everything
-* @pradeepravi-cse @slamint/developers @slamint/reviewers
-
-# Fine-grained ownership per app/lib
-/api/api-gateway/ @slamint/developers @slamint/reviewers
-/api/users/       @slamint/developers @slamint/reviewers
-/common/auth/     @slamint/developers @slamint/reviewers
-/common/core/     @slamint/developers @slamint/reviewers
-
-# Optional: docs can be owned by community
-/docs/ @slamint/developers
+* @pradeepravi-cse
