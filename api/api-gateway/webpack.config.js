@@ -1,11 +1,13 @@
 const { NxAppWebpackPlugin } = require('@nx/webpack/app-plugin');
-const { join } = require('path');
-const { config } = require('process');
+const { join, resolve } = require('path');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
+const swaggerUiDistPath = require('swagger-ui-dist').getAbsoluteFSPath();
 const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin');
 
 module.exports = {
+  // Use resolve() for the output path to ensure consistency
   output: {
-    path: join(__dirname, 'dist'),
+    path: resolve(__dirname, 'dist/apps/api-gateway'),
     ...(process.env.NODE_ENV !== 'production' && {
       devtoolModuleFilenameTemplate: '[absolute-resource-path]',
     }),
@@ -25,11 +27,19 @@ module.exports = {
       compiler: 'tsc',
       main: './src/main.ts',
       tsConfig: './tsconfig.app.json',
-      assets: ['./src/assets'],
       optimization: false,
       outputHashing: 'none',
       generatePackageJson: true,
       sourceMaps: true,
+    }),
+    new CopyWebpackPlugin({
+      patterns: [
+        {
+          from: swaggerUiDistPath,
+          to: 'swagger-ui',
+          noErrorOnMissing: true,
+        },
+      ],
     }),
   ],
 };

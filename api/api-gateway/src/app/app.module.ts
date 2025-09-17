@@ -5,19 +5,26 @@ import {
   ResponseInterceptor,
   AuditInspector,
   AllExceptionFilter,
-  AuditController,
   AuditLog,
   ConfigKey,
+  MicroserviceClientsModule,
+  LoggingInterceptor,
+  LoggerModule,
 } from '@slamint/core';
+import { AuthModule } from '@slamint/auth';
 import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ServeStaticModule } from '@nestjs/serve-static';
 
+import { AppController } from './app.controller';
+import { join } from 'path';
 @Module({
   imports: [
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, 'swagger-ui'),
+      serveRoot: '/api/swagger-ui',
+    }),
     ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
@@ -33,11 +40,17 @@ import { TypeOrmModule } from '@nestjs/typeorm';
       }),
     }),
     TypeOrmModule.forFeature([AuditLog]),
+    MicroserviceClientsModule,
+    AuthModule,
+    LoggerModule,
   ],
-  controllers: [AppController, AuditController],
+  controllers: [AppController],
   providers: [
     AuditService,
-    AppService,
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: LoggingInterceptor,
+    },
     {
       provide: APP_INTERCEPTOR,
       useClass: ResponseInterceptor,

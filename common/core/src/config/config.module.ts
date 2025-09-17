@@ -51,5 +51,5 @@ export class CoreConfigModule {
 }
 
 export { ConfigModule as NestConfigModule } from '@nestjs/config';
-export * from './config.key';
+export { ConfigKey } from './config.key';
 export type { AppConfig };

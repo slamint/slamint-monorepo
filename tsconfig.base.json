@@ -20,7 +20,10 @@
     "target": "es2022",
     "customConditions": ["@slamint/source"],
     "paths": {
-      "@slamint/core": ["common/core/src/index.ts"]
+      "@slamint/auth": ["common/auth/src/index.ts"],
+      "@slamint/auth/*": ["common/auth/src/*"],
+      "@slamint/core": ["common/core/src/index.ts"],
+      "@slamint/core/*": ["common/core/src/*"]
     }
   }
 }

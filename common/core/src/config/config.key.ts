@@ -1,4 +1,3 @@
-// common/core/src/config/config.keys.ts
 export enum ConfigKey {
   NODE_ENV = 'NODE_ENV',
 
@@ -12,4 +11,10 @@ export enum ConfigKey {
   KEYCLOAK_AUTH_SERVER_URL = 'KEYCLOAK_AUTH_SERVER_URL',
   KEYCLOAK_CLIENT_ID = 'KEYCLOAK_CLIENT_ID',
   KEYCLOAK_CLIENT_SECRET = 'KEYCLOAK_CLIENT_SECRET',
+
+  USER_MS_HOST = 'USER_MS_HOST',
+  USER_MS_PORT = 'USER_MS_PORT',
+
+  OIDC_ISSUER = 'OIDC_ISSUER',
+  OIDC_CLIENT = 'OIDC_CLIENT',
 }

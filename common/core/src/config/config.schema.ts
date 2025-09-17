@@ -17,6 +17,9 @@ export const configSchema = z.object({
   [ConfigKey.KEYCLOAK_AUTH_SERVER_URL]: z.string().url(),
   [ConfigKey.KEYCLOAK_CLIENT_ID]: z.string(),
   [ConfigKey.KEYCLOAK_CLIENT_SECRET]: z.string(),
+
+  [ConfigKey.USER_MS_HOST]: z.string(),
+  [ConfigKey.USER_MS_PORT]: z.string().default('8082'),
 });
 
 export type AppConfig = z.infer<typeof configSchema>;

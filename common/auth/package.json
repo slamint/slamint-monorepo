@@ -1,0 +1,52 @@
+{
+  "name": "@slamint/auth",
+  "version": "0.0.1",
+  "type": "commonjs",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "@slamint/source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "!**/*.tsbuildinfo"
+  ],
+  "dependencies": {
+    "tslib": "^2.3.0",
+    "@nestjs/common": "^11.0.0",
+    "@nestjs/passport": "^11.0.5",
+    "@nestjs/core": "^11.0.0",
+    "@nestjs/config": "^4.0.2",
+    "@slamint/core": "workspace:*",
+    "rxjs": "^7.8.0",
+    "passport-jwt": "^4.0.1",
+    "jwks-rsa": "^3.2.0",
+    "axios": "^1.12.1",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "nx": {
+    "targets": {
+      "build": {
+        "executor": "@nx/js:tsc",
+        "dependsOn": [
+          "^build"
+        ],
+        "options": {
+          "outputPath": "common/auth/dist",
+          "tsConfig": "common/auth/tsconfig.lib.json",
+          "packageJson": "common/auth/package.json",
+          "main": "common/auth/src/index.ts",
+          "assets": [
+            "common/auth/*.md"
+          ]
+        }
+      }
+    }
+  }
+}

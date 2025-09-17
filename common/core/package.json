@@ -2,30 +2,48 @@
   "name": "@slamint/core",
   "version": "0.0.1",
   "private": true,
+  "type": "commonjs",
   "main": "./dist/index.js",
-  "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
-    "./package.json": "./package.json",
     ".": {
       "@slamint/source": "./src/index.ts",
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
+      "require": "./dist/index.js",
       "default": "./dist/index.js"
     }
   },
-  "dependencies": {
-    "tslib": "^2.3.0"
+  "peerDependencies": {
+    "@nestjs/common": "^11.0.0",
+    "@nestjs/config": "^4.0.0",
+    "@nestjs/microservices": "^11.0.0",
+    "@nestjs/typeorm": "^11.0.0",
+    "@nestjs/swagger": "^11.0.0",
+    "typeorm": "^0.3.0",
+    "rxjs": "^7.8.0",
+    "dotenv": "^17.2.2",
+    "zod": "^4.1.8",
+    "express": "5.1.0",
+    "tslib": "^2.8.1"
+  },
+  "devDependencies": {
+    "@nestjs/common": "^11.0.0",
+    "@nestjs/core": "^11.0.0",
+    "@nestjs/config": "^4.0.0",
+    "@nestjs/microservices": "^11.0.0",
+    "@nestjs/typeorm": "^11.0.0",
+    "@nestjs/swagger": "^11.0.0",
+    "typeorm": "^0.3.26",
+    "rxjs": "^7.8.2",
+    "@types/express": "^5.0.3",
+    "tslib": "^2.8.1"
   },
   "nx": {
     "targets": {
       "build": {
         "executor": "@nx/js:tsc",
-        "outputs": [
-          "{options.outputPath}"
-        ],
         "options": {
-          "outputPath": "dist/common/core",
+          "outputPath": "common/core/dist",
           "tsConfig": "common/core/tsconfig.lib.json",
           "packageJson": "common/core/package.json",
           "main": "common/core/src/index.ts",

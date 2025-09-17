@@ -8,6 +8,12 @@
     },
     {
       "path": "./common/core"
+    },
+    {
+      "path": "./api/users"
+    },
+    {
+      "path": "./common/auth"
     }
   ]
 }
