@@ -4,6 +4,7 @@ export * from './filters/all-expection.filters';
 // interceptors
 export * from './interceptors/audit.interceptor';
 export * from './interceptors/response.interceptor';
+export * from './interceptors/logging.interceptor';
 
 // domain
 export * from './domain';
@@ -22,3 +23,6 @@ export * from './helpers';
 
 // DTOs
 export * from './dtos';
+
+// Logging
+export * from './logging';

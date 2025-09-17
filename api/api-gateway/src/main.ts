@@ -1,6 +1,8 @@
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { HTTP_LOGGER } from '@slamint/core/logging/logger.module';
+
 import { AppModule } from './app/app.module';
 
 async function bootstrap() {
@@ -44,6 +46,7 @@ async function bootstrap() {
       transform: true,
     })
   );
+  app.use(app.get(HTTP_LOGGER));
 
   const port = Number(process.env.PORT) || 8081;
   await app.listen(port);
