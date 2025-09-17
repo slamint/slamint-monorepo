@@ -1,101 +1,210 @@
-# SlamintMonorepo
+# SLAMINT Monorepo
 
-<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
+Nx‑powered workspace for building NestJS microservices and shared libraries (@slamint/\*).
 
-✨ Your new, shiny [Nx workspace](https://nx.dev) is ready ✨.
+---
 
-[Learn more about this workspace setup and its capabilities](https://nx.dev/nx-api/node?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
+## Overview
 
-## Run tasks
+- **APIs**: `api/api-gateway` (HTTP gateway), `api/users` (users microservice)
+- **Libraries**: `common/core` (config, logging, auditing, envelopes, MS clients), `common/auth` (JWT/OIDC auth & decorators)
+- **Tooling**: Nx 21, pnpm workspace, TypeScript 5.9, Webpack for Nest apps
 
-To run the dev server for your app, use:
+> Minimal, “private‑by‑default” auth/guards and standardized API envelopes are provided by the shared libs.
 
-```sh
-npx nx serve slamint
+---
+
+## Prerequisites
+
+- **Node.js**: 20.x (LTS)
+- **pnpm**: 9+
+- **PostgreSQL** (for audit logs, optional until you enable the entity)
+- **Keycloak / OIDC issuer** (for `@slamint/auth` when you run the gateway)
+
+Install workspace deps:
+
+```bash
+pnpm install
 ```
 
-To create a production bundle:
+---
 
-```sh
-npx nx build slamint
+## Quick start (dev)
+
+Run all apps in development mode (watch):
+
+```bash
+pnpm run start:dev
 ```
 
-To see all available targets to run for a project, run:
+This runs Nx `serve` for all projects with development configuration, streaming logs.
 
-```sh
-npx nx show project slamint
+Run a single app:
+
+```bash
+pnpm nx serve @slamint/api-gateway --configuration=development
+# or
+pnpm nx serve @slamint/users --configuration=development
 ```
 
-These targets are either [inferred automatically](https://nx.dev/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
+---
 
-[More about running tasks in the docs &raquo;](https://nx.dev/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+## Build
 
-## Add new projects
+Build all projects:
 
-While you could add new projects to your workspace manually, you might want to leverage [Nx plugins](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) and their [code generation](https://nx.dev/features/generate-code?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) feature.
-
-Use the plugin's generator to create new projects.
-
-To generate a new application, use:
-
-```sh
-npx nx g @nx/node:app demo
+```bash
+pnpm run build
 ```
 
-To generate a new library, use:
+Build a single project:
 
-```sh
-npx nx g @nx/node:lib mylib
+```bash
+pnpm nx build @slamint/api-gateway
+pnpm nx build @slamint/core
+pnpm nx build @slamint/auth
 ```
 
-You can use `npx nx list` to get a list of installed plugins. Then, run `npx nx list <plugin-name>` to learn about more specific capabilities of a particular plugin. Alternatively, [install Nx Console](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) to browse plugins and generators in your IDE.
+Visualize dependency graph:
 
-[Learn more about Nx plugins &raquo;](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) | [Browse the plugin registry &raquo;](https://nx.dev/plugin-registry?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Set up CI!
-
-### Step 1
-
-To connect to Nx Cloud, run the following command:
-
-```sh
-npx nx connect
+```bash
+pnpm nx graph
 ```
 
-Connecting to Nx Cloud ensures a [fast and scalable CI](https://nx.dev/ci/intro/why-nx-cloud?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) pipeline. It includes features such as:
+---
 
-- [Remote caching](https://nx.dev/ci/features/remote-cache?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task distribution across multiple machines](https://nx.dev/ci/features/distribute-task-execution?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Automated e2e test splitting](https://nx.dev/ci/features/split-e2e-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task flakiness detection and rerunning](https://nx.dev/ci/features/flaky-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+## Environment configuration
 
-### Step 2
+Create a workspace‑level `.env` (auto‑loaded by libs) and per‑app env files as needed.
+Typical keys:
 
-Use the following command to configure a CI workflow for your workspace:
+```bash
+# Runtime
+NODE_ENV=development
 
-```sh
-npx nx g ci-workflow
+# Database
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=sla_mint
+DB_PASS=P@ssword1
+DB_NAME=sla_mint
+
+# OIDC / Keycloak (for @slamint/auth)
+OIDC_ISSUER=http://localhost:8080/realms/slamint
+OIDC_CLIENT=slamint-api
+
+# Microservices
+USER_MS_HOST=127.0.0.1
+USER_MS_PORT=8082
 ```
 
-[Learn more about Nx on CI](https://nx.dev/ci/intro/ci-with-nx#ready-get-started-with-your-provider?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+> `@slamint/core` validates env with Zod; `@slamint/auth` discovers JWKS from `OIDC_ISSUER`.
 
-## Install Nx Console
+---
 
-Nx Console is an editor extension that enriches your developer experience. It lets you run tasks, generate code, and improves code autocompletion in your IDE. It is available for VSCode and IntelliJ.
+## Folder structure (high‑level)
 
-[Install Nx Console &raquo;](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+```
+api/
+  api-gateway/        # Nest app (HTTP + Swagger)
+  users/              # Nest microservice (TCP)
+common/
+  core/               # Config, logging, interceptors, filters, audit, MS registry
+  auth/               # OIDC/JWT auth module + guards + decorators
+scripts & root files
+  generate.sh         # Nx generators wrapper for libs/apps
+  nx.json             # Nx workspace config (plugins, generators, defaults)
+  pnpm-workspace.yaml # pnpm packages scope
+  package.json        # scripts (start:dev, build)
+```
 
-## Useful links
+For a detailed tree, see `tree.md` in the repo.
 
-Learn more:
+---
 
-- [Learn more about this workspace setup](https://nx.dev/nx-api/node?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects)
-- [Learn about Nx on CI](https://nx.dev/ci/intro/ci-with-nx?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Releasing Packages with Nx release](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [What are Nx plugins?](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+## How to generate new projects
 
-And join the Nx community:
-- [Discord](https://go.nx.dev/community)
-- [Follow us on X](https://twitter.com/nxdevtools) or [LinkedIn](https://www.linkedin.com/company/nrwl)
-- [Our Youtube channel](https://www.youtube.com/@nxdevtools)
-- [Our blog](https://nx.dev/blog?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+Use the helper script to scaffold with consistent options.
+
+Generate a library under `common/`:
+
+```bash
+./generate.sh lib <project-name>
+```
+
+Generate an API under `api/`:
+
+```bash
+./generate.sh api <project-name>
+```
+
+After generation:
+
+```bash
+pnpm nx build @slamint/<project-name>
+```
+
+---
+
+## Running the gateway
+
+The gateway consumes `@slamint/core` and `@slamint/auth`.
+
+1. Ensure OIDC issuer is reachable and env vars are set (`OIDC_ISSUER`, `OIDC_CLIENT`).
+2. Start the service:
+
+```bash
+pnpm nx serve @slamint/api-gateway --configuration=development
+```
+
+3. Visit Swagger UI at the printed URL (served from the build outputs).
+
+---
+
+## Development tips
+
+- Use **private‑by‑default** controllers and opt‑in public endpoints with `@Public()` from `@slamint/auth`.
+- Keep global interceptors/filters in the app module for consistent envelopes and logs.
+- For MS calls (TCP), inject clients from `MicroserviceClientsModule` in `@slamint/core`.
+- `pnpm nx show projects --json` to list projects; `nx graph` to explore dependencies.
+
+---
+
+## Packaging libraries locally (optional)
+
+A Verdaccio target exists for local NPM registry testing.
+
+```bash
+pnpm nx local-registry
+# then configure npm/pnpm to use http://localhost:4873 for publish/install tests
+```
+
+---
+
+## Docker & orchestration
+
+A `docker-compose.yml` exists at the root for future service composition (DB, Keycloak, services). Add service blocks incrementally as you containerize apps.
+
+---
+
+## Troubleshooting
+
+- **Port already in use**: stop orphaned processes or change `PORT` env per app.
+- **Path aliases**: ensure the app’s `tsconfig.json` extends root `tsconfig.base.json` and that libs export entrypoints.
+- **JWT errors**: verify `OIDC_ISSUER` is correct and the issuer’s JWKS is reachable.
+- **TypeORM/Audit**: include `AuditLog` entity in `TypeOrmModule.forFeature([AuditLog])` when enabling auditing.
+
+---
+
+## Scripts (reference)
+
+- `pnpm run start:dev` — serve all apps (dev/watch)
+- `pnpm run build` — build all projects
+- `./generate.sh lib <name>` — scaffold a new library under `common/`
+- `./generate.sh api <name>` — scaffold a Nest application under `api/`
+
+---
+
+## License
+
+Internal — SLAMINT project.

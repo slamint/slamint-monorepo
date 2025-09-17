@@ -14,7 +14,7 @@
     }
   },
   "files": [
-    "dist",
+    "dist/**",
     "!**/*.tsbuildinfo"
   ],
   "dependencies": {
@@ -24,7 +24,6 @@
     "@nestjs/core": "^11.0.0",
     "@nestjs/config": "^4.0.2",
     "@slamint/core": "workspace:*",
-    "rxjs": "^7.8.0",
     "passport-jwt": "^4.0.1",
     "jwks-rsa": "^3.2.0",
     "axios": "^1.12.1",
