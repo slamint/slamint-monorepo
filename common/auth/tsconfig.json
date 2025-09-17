@@ -4,13 +4,10 @@
   "include": [],
   "references": [
     {
-      "path": "../../common/auth"
+      "path": "./tsconfig.lib.json"
     },
     {
-      "path": "../../common/core"
-    },
-    {
-      "path": "./tsconfig.app.json"
+      "path": "../core"
     }
   ]
 }

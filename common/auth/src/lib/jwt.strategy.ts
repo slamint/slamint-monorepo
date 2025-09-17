@@ -1,4 +1,3 @@
-// apps/api-gateway/src/auth/jwt.strategy.ts
 import { Injectable, Inject } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
@@ -20,10 +19,7 @@ interface TokenPayload {
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
-  constructor(
-    private readonly cs: ConfigService,
-    @Inject(OIDC_CONFIG) private readonly oc: OidcConfig
-  ) {
+  constructor(cs: ConfigService, @Inject(OIDC_CONFIG) oc: OidcConfig) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       issuer: oc.issuer,
@@ -61,7 +57,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
 
 /* ---------- tiny helpers ---------- */
 function thisAudience(cs: ConfigService): string | undefined {
-  const aud = cs.get<string>('OIDC_AUDIENCE');
+  const aud = cs.get<string>('OIDC_CLIENT');
   return aud && aud.trim() !== '' ? aud : undefined;
 }
 

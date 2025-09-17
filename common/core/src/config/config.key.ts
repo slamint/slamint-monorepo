@@ -1,4 +1,3 @@
-// common/core/src/config/config.keys.ts
 export enum ConfigKey {
   NODE_ENV = 'NODE_ENV',
 
@@ -15,4 +14,7 @@ export enum ConfigKey {
 
   USER_MS_HOST = 'USER_MS_HOST',
   USER_MS_PORT = 'USER_MS_PORT',
+
+  OIDC_ISSUER = 'OIDC_ISSUER',
+  OIDC_CLIENT = 'OIDC_CLIENT',
 }

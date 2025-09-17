@@ -11,6 +11,9 @@
     },
     {
       "path": "./api/users"
+    },
+    {
+      "path": "./common/auth"
     }
   ]
 }

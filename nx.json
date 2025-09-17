@@ -1,5 +1,8 @@
 {
   "$schema": "./node_modules/nx/schemas/nx-schema.json",
+  "sync": {
+    "applyChanges": true
+  },
   "namedInputs": {
     "default": ["{projectRoot}/**/*", "sharedGlobals"],
     "production": [
@@ -21,7 +24,8 @@
           "configName": "tsconfig.lib.json",
           "buildDepsName": "build-deps",
           "watchDepsName": "watch-deps"
-        }
+        },
+        "format": ["esm"]
       },
       "exclude": ["common/core/*"]
     },
@@ -44,28 +48,31 @@
     },
     {
       "plugin": "@nx/docker",
-      "options": {
-        "buildTarget": "docker:build",
-        "runTarget": "docker:run"
-      }
+      "options": {}
     },
     {
       "plugin": "@nx/js/typescript",
-      "include": ["common/core/*"],
+      "include": ["common/core/*", "common/auth/*"],
       "options": {
         "typecheck": {
           "targetName": "typecheck"
         }
-      }
+      },
+      "exclude": ["common/auth/*"]
     }
   ],
   "generators": {
     "@nx/nest:application": {
+      "projectConfig": "project",
       "e2eTestRunner": "none",
-      "unitTestRunner": "none"
+      "unitTestRunner": "none",
+      "linter": "eslint"
     },
     "@nx/nest:library": {
-      "unitTestRunner": "none"
+      "projectConfig": "project",
+      "e2eTestRunner": "none",
+      "unitTestRunner": "none",
+      "linter": "eslint"
     },
     "@nx/js:library": {
       "unitTestRunner": "none"
@@ -76,6 +83,18 @@
     },
     "@nx/react:library": {
       "unitTestRunner": "none"
+    }
+  },
+  "targetDefaults": {
+    "@nx/esbuild:esbuild": {
+      "cache": true,
+      "dependsOn": ["^build"],
+      "inputs": ["production", "^production"]
+    }
+  },
+  "release": {
+    "version": {
+      "preVersionCommand": "pnpm dlx nx run-many -t build"
     }
   }
 }

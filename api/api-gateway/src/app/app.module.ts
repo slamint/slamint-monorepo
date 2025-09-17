@@ -9,13 +9,13 @@ import {
   ConfigKey,
   MicroserviceClientsModule,
 } from '@slamint/core';
+import { AuthModule } from '@slamint/auth';
 import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ServeStaticModule } from '@nestjs/serve-static';
 
 import { AppController } from './app.controller';
-import { AuthModule } from './auth/auth.module';
 import { join } from 'path';
 
 @Module({
