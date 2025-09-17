@@ -16,8 +16,8 @@
     "noImplicitAny": true,
     "strictBindCallApply": true,
     "noFallthroughCasesInSwitch": true,
-    "composite": true
+    "composite": true,
+    "skipLibCheck": true
   },
-  "include": ["src/**/*.ts"],
-  "references": []
+  "include": ["src/**/*.ts"]
 }
