@@ -1,210 +1,221 @@
-# SLAMINT Monorepo
+# 🎟️ SLA Mint – Open Source Ticketing & Helpdesk Tool
 
-Nx‑powered workspace for building NestJS microservices and shared libraries (@slamint/\*).
-
----
-
-## Overview
-
-- **APIs**: `api/api-gateway` (HTTP gateway), `api/users` (users microservice)
-- **Libraries**: `common/core` (config, logging, auditing, envelopes, MS clients), `common/auth` (JWT/OIDC auth & decorators)
-- **Tooling**: Nx 21, pnpm workspace, TypeScript 5.9, Webpack for Nest apps
-
-> Minimal, “private‑by‑default” auth/guards and standardized API envelopes are provided by the shared libs.
+> **A community-driven alternative to costly service desk platforms.**  
+> SLA Mint helps organizations manage IT support, track SLAs, and deliver faster resolutions — all in a transparent, open-source way.
 
 ---
 
-## Prerequisites
+## 📌 1. Overview
 
-- **Node.js**: 20.x (LTS)
-- **pnpm**: 9+
-- **PostgreSQL** (for audit logs, optional until you enable the entity)
-- **Keycloak / OIDC issuer** (for `@slamint/auth` when you run the gateway)
+SLA Mint is an **open-source IT ticketing and helpdesk solution**.  
+It empowers **businesses, startups, and communities** to centralize support operations, enforce SLAs (Service Level Agreements), and provide measurable service quality without being locked into expensive proprietary tools.
 
-Install workspace deps:
-
-```bash
-pnpm install
-```
+✨ **Key Value**: Streamlined operations, SLA compliance, better insights, and reduced costs.
 
 ---
 
-## Quick start (dev)
+## 🛑 2. Business Problems
 
-Run all apps in development mode (watch):
-
-```bash
-pnpm run start:dev
-```
-
-This runs Nx `serve` for all projects with development configuration, streaming logs.
-
-Run a single app:
-
-```bash
-pnpm nx serve @slamint/api-gateway --configuration=development
-# or
-pnpm nx serve @slamint/users --configuration=development
-```
+- ❌ **Fragmented Support** – Emails, chats, and spreadsheets lead to lost requests.
+- ⏳ **SLA Breaches** – No visibility into deadlines or commitments.
+- 💸 **High Licensing Costs** – Commercial service desk tools are often unaffordable.
+- 📉 **Poor Insights** – Lack of analytics = no improvement path.
+- 🔒 **Vendor Lock-in** – Existing tools restrict customization and flexibility.
 
 ---
 
-## Build
+## 💡 3. Our Solution
 
-Build all projects:
+SLA Mint provides a **flexible, cost-effective** way to manage support:
 
-```bash
-pnpm run build
-```
-
-Build a single project:
-
-```bash
-pnpm nx build @slamint/api-gateway
-pnpm nx build @slamint/core
-pnpm nx build @slamint/auth
-```
-
-Visualize dependency graph:
-
-```bash
-pnpm nx graph
-```
+- 🗂️ **Centralized Ticketing** – All support requests in one place.
+- 📊 **SLA Management** – Define response & resolution timeframes.
+- 👥 **Role-based Access Control** – Admin, Agent, Manager, End-user.
+- 📩 **Multi-channel Support** – Web, email, and API-based ticket creation.
+- 📈 **Analytics & Dashboards** – Monitor SLA breaches, workloads, and trends.
+- 🛠️ **Open-source Flexibility** – Self-host, extend, and integrate freely.
 
 ---
 
-## Environment configuration
+## 🚀 4. Features
 
-Create a workspace‑level `.env` (auto‑loaded by libs) and per‑app env files as needed.
-Typical keys:
+### 🔑 Core Features
 
-```bash
-# Runtime
-NODE_ENV=development
+- Ticket creation, assignment & tracking
+- SLA definition & monitoring
+- Priority, category & status management
+- Role-based permissions
+- Audit logs & history
 
-# Database
-DB_HOST=localhost
-DB_PORT=5432
-DB_USER=sla_mint
-DB_PASS=P@ssword1
-DB_NAME=sla_mint
+### ⚡ Advanced Features
 
-# OIDC / Keycloak (for @slamint/auth)
-OIDC_ISSUER=http://localhost:8080/realms/slamint
-OIDC_CLIENT=slamint-api
+- Email-to-ticket conversion
+- SLA escalations & notifications
+- Performance dashboard & analytics
+- Multi-tenant support (for MSPs & large orgs)
+- REST API for integrations
 
-# Microservices
-USER_MS_HOST=127.0.0.1
-USER_MS_PORT=8082
-```
+### 🌐 Future Features
 
-> `@slamint/core` validates env with Zod; `@slamint/auth` discovers JWKS from `OIDC_ISSUER`.
-
----
-
-## Folder structure (high‑level)
-
-```
-api/
-  api-gateway/        # Nest app (HTTP + Swagger)
-  users/              # Nest microservice (TCP)
-common/
-  core/               # Config, logging, interceptors, filters, audit, MS registry
-  auth/               # OIDC/JWT auth module + guards + decorators
-scripts & root files
-  generate.sh         # Nx generators wrapper for libs/apps
-  nx.json             # Nx workspace config (plugins, generators, defaults)
-  pnpm-workspace.yaml # pnpm packages scope
-  package.json        # scripts (start:dev, build)
-```
-
-For a detailed tree, see `tree.md` in the repo.
+- Omnichannel (chat, WhatsApp, Teams, Slack)
+- AI ticket routing & sentiment analysis
+- Knowledge base & self-service portal
+- Workflow automation (approvals, escalations)
+- Mobile app for agents on-the-go
 
 ---
 
-## How to generate new projects
+## 📊 5. Business Impact
 
-Use the helper script to scaffold with consistent options.
-
-Generate a library under `common/`:
-
-```bash
-./generate.sh lib <project-name>
-```
-
-Generate an API under `api/`:
-
-```bash
-./generate.sh api <project-name>
-```
-
-After generation:
-
-```bash
-pnpm nx build @slamint/<project-name>
-```
+- ✅ **Faster Resolutions** → Improved SLA compliance
+- ✅ **Lower Costs** → No proprietary licensing
+- ✅ **Increased Accountability** → Clear roles & ownership
+- ✅ **Data-driven Decisions** → Performance reports & KPIs
+- ✅ **Community-driven Growth** → Contributions & integrations
 
 ---
 
-## Running the gateway
+## 📈 6. KPIs
 
-The gateway consumes `@slamint/core` and `@slamint/auth`.
-
-1. Ensure OIDC issuer is reachable and env vars are set (`OIDC_ISSUER`, `OIDC_CLIENT`).
-2. Start the service:
-
-```bash
-pnpm nx serve @slamint/api-gateway --configuration=development
-```
-
-3. Visit Swagger UI at the printed URL (served from the build outputs).
+| 📍 KPI                           | 📖 Definition                    | 💼 Business Value       |
+| -------------------------------- | -------------------------------- | ----------------------- |
+| **SLA Compliance Rate**          | % of tickets resolved within SLA | Measures reliability    |
+| **Avg. Response Time**           | Time to first response           | Indicates efficiency    |
+| **Avg. Resolution Time**         | Time to resolve ticket           | Measures effectiveness  |
+| **Ticket Volume**                | # of new tickets                 | Shows workload & demand |
+| **CSAT (Customer Satisfaction)** | Post-resolution survey score     | Reflects quality        |
+| **Escalation Rate**              | % of tickets escalated           | Identifies process gaps |
 
 ---
 
-## Development tips
+## 🛣️ 7. Roadmap
 
-- Use **private‑by‑default** controllers and opt‑in public endpoints with `@Public()` from `@slamint/auth`.
-- Keep global interceptors/filters in the app module for consistent envelopes and logs.
-- For MS calls (TCP), inject clients from `MicroserviceClientsModule` in `@slamint/core`.
-- `pnpm nx show projects --json` to list projects; `nx graph` to explore dependencies.
+<details>
+<summary>📍 Phase 1 – Foundation (✅ In Progress)</summary>
 
----
+- Ticket management
+- SLA enforcement
+- Basic roles & permissions
+</details>
 
-## Packaging libraries locally (optional)
+<details>
+<summary>🚀 Phase 2 – Growth</summary>
 
-A Verdaccio target exists for local NPM registry testing.
+- Email integration
+- SLA notifications
+- Analytics dashboard
+</details>
 
-```bash
-pnpm nx local-registry
-# then configure npm/pnpm to use http://localhost:4873 for publish/install tests
-```
+<details>
+<summary>🌐 Phase 3 – Advanced</summary>
 
----
+- Omnichannel support (chat, API, mobile)
+- Knowledge base
+- AI/ML ticket routing
+</details>
 
-## Docker & orchestration
+<details>
+<summary>💡 Phase 4 – Community</summary>
 
-A `docker-compose.yml` exists at the root for future service composition (DB, Keycloak, services). Add service blocks incrementally as you containerize apps.
-
----
-
-## Troubleshooting
-
-- **Port already in use**: stop orphaned processes or change `PORT` env per app.
-- **Path aliases**: ensure the app’s `tsconfig.json` extends root `tsconfig.base.json` and that libs export entrypoints.
-- **JWT errors**: verify `OIDC_ISSUER` is correct and the issuer’s JWKS is reachable.
-- **TypeORM/Audit**: include `AuditLog` entity in `TypeOrmModule.forFeature([AuditLog])` when enabling auditing.
-
----
-
-## Scripts (reference)
-
-- `pnpm run start:dev` — serve all apps (dev/watch)
-- `pnpm run build` — build all projects
-- `./generate.sh lib <name>` — scaffold a new library under `common/`
-- `./generate.sh api <name>` — scaffold a Nest application under `api/`
+- Plugin/extension marketplace
+- Enterprise adoption
+- Cloud + On-prem hybrid deployment
+</details>
 
 ---
 
-## License
+## 👥 8. Business Roles & Responsibilities
 
-Internal — SLAMINT project.
+SLA Mint is designed to serve multiple **business personas**. Each role has distinct responsibilities and value from the system.
+
+### 🧑‍💼 End Users (Employees / Customers)
+
+- Create support tickets (IT, HR, Facilities, etc.)
+- Track progress & resolution status
+- Provide feedback & satisfaction ratings (CSAT)
+
+### 🎧 Support Agents
+
+- Respond to incoming tickets within SLA
+- Update ticket status, progress notes & resolutions
+- Escalate issues when needed
+- Ensure timely closure of tickets
+
+### 👩‍💻 Team Leads / Managers
+
+- Monitor team performance & SLA compliance
+- Reassign or balance workloads among agents
+- Approve escalations or exceptions
+- Generate reports for higher management
+
+### 🛠️ Admins / IT Service Desk Owners
+
+- Configure SLAs, categories, priorities
+- Manage roles, permissions, and workflows
+- Ensure system uptime & integration with other tools
+- Maintain audit logs & compliance requirements
+
+### 🏢 Business Leadership / Department Heads
+
+- Review KPI dashboards for service quality
+- Identify bottlenecks and areas of improvement
+- Allocate budget/resources based on workload data
+- Drive continuous improvement initiatives
+
+---
+
+## 📋 9. Business RACI Matrix
+
+| Activity / Task                        | End User | Agent | Manager | Admin/IT | Leadership |
+| -------------------------------------- | -------- | ----- | ------- | -------- | ---------- |
+| **Ticket Creation**                    | R        | C     | I       | I        | I          |
+| **Ticket Response & Resolution**       | C        | R     | A       | I        | I          |
+| **Escalation Handling**                | I        | R     | A       | C        | I          |
+| **SLA Monitoring**                     | I        | R     | A       | C        | I          |
+| **System Configuration (SLAs, Roles)** | I        | I     | C       | R/A      | I          |
+| **Workload Management & Reassignment** | I        | C     | R/A     | I        | I          |
+| **Reporting & Analytics**              | I        | C     | R       | C        | A          |
+| **Compliance & Audit**                 | I        | I     | C       | R        | A          |
+| **Customer Satisfaction Feedback**     | R        | C     | I       | I        | I          |
+| **Strategic Improvements / Budgets**   | I        | I     | C       | C        | R/A        |
+
+👉 Legend:
+
+- **R** = Responsible (does the work)
+- **A** = Accountable (final ownership)
+- **C** = Consulted (provides input)
+- **I** = Informed (kept updated)
+
+---
+
+## 🔮 10. Future Plans
+
+- 🤖 **AI-driven triage** – Auto-prioritize & route tickets.
+- 🏢 **Enterprise readiness** – RBAC, compliance, advanced audit logs.
+- ☁️ **Hybrid deployments** – Cloud + On-prem.
+- 🔌 **Marketplace** – Plugins & integrations (Slack, Jira, Teams).
+- 📱 **Mobile apps** – Agent productivity on-the-go.
+
+---
+
+## 🤝 11. Community & Contribution
+
+- **License**: MIT – free to use, modify, and distribute.
+- **Contributions**: PRs, issues, and discussions welcome.
+- **Community Calls**: Planned for roadmap discussions.
+- **Governance**: Open and transparent, with community voting on features.
+
+---
+
+## ✅ 12. Conclusion
+
+SLA Mint is more than a tool — it’s a **movement towards open, affordable, and effective service management**.
+
+It empowers organizations to:
+
+- Manage support tickets effectively
+- Enforce SLAs with confidence
+- Gain insights through KPIs & analytics
+- Avoid vendor lock-in and high licensing costs
+
+> **SLA Mint = Transparency + Efficiency + Community**
