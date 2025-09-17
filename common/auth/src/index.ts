@@ -1,3 +1,3 @@
 export { AuthModule } from './lib/auth.module';
 
-export { Public, Roles } from './lib/roles.decorator';
+export { Public, Roles, RoleName, Authenticated } from './lib/roles.decorator';

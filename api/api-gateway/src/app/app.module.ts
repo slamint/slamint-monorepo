@@ -17,7 +17,6 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 
 import { AppController } from './app.controller';
 import { join } from 'path';
-
 @Module({
   imports: [
     ServeStaticModule.forRoot({
@@ -42,7 +41,7 @@ import { join } from 'path';
     MicroserviceClientsModule,
     AuthModule,
   ],
-  controllers: [AppController], // UsersGatewayController
+  controllers: [AppController],
   providers: [
     AuditService,
     {

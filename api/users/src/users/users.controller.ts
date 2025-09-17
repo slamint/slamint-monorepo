@@ -9,8 +9,6 @@ export class UsersController {
 
   @MessagePattern({ cmd: UserCommands.GET_LIST })
   getAll() {
-    console.log('user controller get list =======>');
-
     return this.usersService.getAll();
   }
 }

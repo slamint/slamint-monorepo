@@ -6,7 +6,7 @@ import {
   HealthDto,
 } from '@slamint/core';
 
-import { Public } from '@slamint/auth';
+import { Public, Roles, RoleName, Authenticated } from '@slamint/auth';
 
 @ApiTags('Health Checks')
 @Controller('health')

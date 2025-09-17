@@ -5,7 +5,6 @@ import { APP_GUARD } from '@nestjs/core';
 import { JwtStrategy } from './jwt.strategy';
 import { OidcConfigProvider } from './oidc.provider';
 import { JwtAuthGuard } from './jwt-auth.guard';
-import { RolesGuard } from './roles.guard';
 
 import { ConfigModule } from '@nestjs/config';
 
@@ -15,7 +14,6 @@ import { ConfigModule } from '@nestjs/config';
     OidcConfigProvider,
     JwtStrategy,
     { provide: APP_GUARD, useClass: JwtAuthGuard },
-    { provide: APP_GUARD, useClass: RolesGuard },
   ],
   exports: [PassportModule],
 })

@@ -5,20 +5,12 @@ import * as jwksRsa from 'jwks-rsa';
 import { ConfigService } from '@nestjs/config';
 import { OIDC_CONFIG, type OidcConfig } from './oidc.provider';
 
-type ResourceAccessEntry = { roles?: string[] };
-type ResourceAccess = Record<string, ResourceAccessEntry>;
-interface TokenPayload {
-  sub?: string;
-  email?: string;
-  name?: string;
-  roles?: string[];
-  realm_access?: { roles?: string[] };
-  resource_access?: ResourceAccess;
-  [k: string]: unknown;
-}
+import { JwtUser, KcJwtPayload } from './keycloak';
+import { ConfigKey } from '@slamint/core';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
+  config: ConfigService;
   constructor(cs: ConfigService, @Inject(OIDC_CONFIG) oc: OidcConfig) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -35,38 +27,26 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       }),
       ignoreExpiration: false,
     });
+    this.config = cs;
   }
 
-  async validate(payload: TokenPayload) {
-    const resourceRoles = flattenResourceRoles(payload.resource_access);
+  async validate(payload: KcJwtPayload): Promise<JwtUser> {
     const realmRoles = payload.realm_access?.roles ?? [];
-    const directRoles = payload.roles ?? [];
-    const roles = Array.from(
-      new Set([...directRoles, ...resourceRoles, ...realmRoles])
-    );
+    const directRoles =
+      payload.resource_access?.[thisAudience(this.config) ?? ''].roles ?? [];
+    const roles = Array.from(new Set([...directRoles, ...realmRoles]));
 
     return {
       sub: payload.sub ?? '',
       email: payload.email ?? '',
-      name: payload.name ?? '',
+      username: payload.preferred_username ?? '',
       roles,
-      raw: payload,
     };
   }
 }
 
 /* ---------- tiny helpers ---------- */
 function thisAudience(cs: ConfigService): string | undefined {
-  const aud = cs.get<string>('OIDC_CLIENT');
+  const aud = cs.get<string>(ConfigKey.OIDC_CLIENT);
   return aud && aud.trim() !== '' ? aud : undefined;
-}
-
-function flattenResourceRoles(resource?: ResourceAccess): string[] {
-  if (!resource) return [];
-  const all: string[] = [];
-  for (const key of Object.keys(resource)) {
-    const roles = resource[key]?.roles ?? [];
-    for (const r of roles) all.push(r);
-  }
-  return all;
 }
