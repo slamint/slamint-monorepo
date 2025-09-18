@@ -5,5 +5,6 @@ export enum HealthEndPoints {
 
 export enum AccountManagementEndPoints {
   ME = 'me',
-  GETBYID = 'users/:id',
+  LIST_USERS = 'users',
+  GET_USER_BY_ID = 'users/:id',
 }

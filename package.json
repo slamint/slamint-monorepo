@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
-    "start:dev": "nx run-many --target=serve --all --configuration=development --output-style=stream",
+    "start:dev": "nx run-many --target=serve --all --configuration=development --output-style=stream --verbose",
     "build": "nx run-many --target=build --all  --output-style=stream"
   },
   "private": true,

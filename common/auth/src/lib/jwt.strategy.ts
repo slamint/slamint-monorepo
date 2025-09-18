@@ -33,13 +33,14 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   async validate(payload: KcJwtPayload): Promise<JwtUser> {
     const realmRoles = payload.realm_access?.roles ?? [];
     const directRoles =
-      payload.resource_access?.[thisAudience(this.config) ?? ''].roles ?? [];
+      payload.resource_access?.[thisAudience(this.config) ?? '']?.roles ?? [];
     const roles = Array.from(new Set([...directRoles, ...realmRoles]));
 
     return {
       sub: payload.sub ?? '',
       email: payload.email ?? '',
-      username: payload.preferred_username ?? '',
+      preferred_username: payload.preferred_username ?? '',
+      name: payload.name,
       roles,
     };
   }

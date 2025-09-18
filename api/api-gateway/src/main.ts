@@ -20,15 +20,7 @@ async function bootstrap() {
       'This API Gateway provides a unified entry point for all SLA Mint services. It exposes endpoints for health checks, authentication, and downstream service communication, and documents all possible success and error responses using OpenAPI 3.0.'
     )
     .setVersion('1.0.0')
-    .addBearerAuth(
-      {
-        type: 'http',
-        scheme: 'bearer',
-        bearerFormat: 'JWT',
-        description: 'Provide a valid JWT access token to authorize requests.',
-      },
-      'JWT Token'
-    )
+    .addBearerAuth()
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

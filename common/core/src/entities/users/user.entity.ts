@@ -23,9 +23,12 @@ export class AppUser {
   name?: string;
 
   @Column({ type: 'text', nullable: true })
+  username?: string;
+
+  @Column({ type: 'text', nullable: true })
   phone?: string;
 
-  @Column({ type: 'text', default: 'en-IN' })
+  @Column({ type: 'text', default: 'en-US' })
   locale!: string;
 
   //   @Column({ type: 'text', nullable: true, name: 'avatar_url' })

@@ -1,23 +1,28 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller } from '@nestjs/common';
+
+import { AccountManagementCommands, User } from '@slamint/core';
 import { AccountManagementService } from './accMgmt.service';
-
-import {
-  AccountManagementEndPoints,
-  ApiVersion,
-  Controllers,
-} from '@slamint/core';
 import { MessagePattern } from '@nestjs/microservices';
+export interface EnsureFromJwtMsg {
+  sub: string;
+  iss?: string;
+  email: string;
+  email_verified?: boolean;
+  name?: string;
+  preferred_username?: string;
+  realm_access?: { roles?: string[] };
+}
+export interface EnsureFromJwtResult {
+  userId: string;
+  isFirstLogin: boolean;
+}
 
-@Controller(`${Controllers.ACCOUNT_MANAGEMENT}/${ApiVersion.VERSION_ONE}`)
+@Controller()
 export class AccountManagementController {
-  constructor(private readonly appService: AccountManagementService) {}
+  constructor(private readonly svc: AccountManagementService) {}
 
-  @Get(AccountManagementEndPoints.ME)
-  getData() {
-    return this.appService.getData();
-  }
-  @MessagePattern({ cmd: 'acc.ping' })
-  ping() {
-    return { ok: true, ms: 'acc-mgnt' };
+  @MessagePattern(AccountManagementCommands.ACC_LIST_USERS)
+  getallUsers(): Promise<User[]> {
+    return this.svc.getAllUsers();
   }
 }

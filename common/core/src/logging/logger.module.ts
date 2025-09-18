@@ -20,7 +20,8 @@ export const HTTP_LOGGER = Symbol('HTTP_LOGGER');
               singleLine: true,
               colorize: false,
               messageKey: 'msg',
-              errorLikeObjectKeys: [],
+              errorLikeObjectKeys: ['err', 'error'],
+              errorProps: 'stack,message,name,code,cause',
               translateTime: false,
               levelFirst: false,
             },
@@ -31,7 +32,6 @@ export const HTTP_LOGGER = Symbol('HTTP_LOGGER');
               'req.headers.cookie',
               'body.password',
               'body.client_secret',
-              'error.stack',
             ],
             censor: '<<REDACTED>>',
           },
@@ -47,6 +47,17 @@ export const HTTP_LOGGER = Symbol('HTTP_LOGGER');
               const isRecord = (v: unknown): v is Record<string, unknown> =>
                 typeof v === 'object' && v !== null && !Array.isArray(v);
 
+              const errIndex = args.findIndex((a) => a instanceof Error);
+              const err = errIndex >= 0 ? (args[errIndex] as Error) : undefined;
+
+              let payload: Record<string, unknown>;
+              if (isRecord(args[0])) {
+                payload = args[0];
+              } else {
+                payload = {};
+                args.unshift(payload);
+              }
+
               const ctx = getRequestContext();
               if (ctx) {
                 const patch = {
@@ -60,6 +71,12 @@ export const HTTP_LOGGER = Symbol('HTTP_LOGGER');
                 else args.unshift({ ...patch });
               }
 
+              if (err) {
+                (payload as any).err = err;
+                // remove the original error arg to avoid confusion
+                args.splice(errIndex + (isRecord(rawArgs[0]) ? 0 : 1), 1);
+              }
+
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               method.apply(this, args as any);
             },
@@ -69,7 +86,18 @@ export const HTTP_LOGGER = Symbol('HTTP_LOGGER');
     },
     {
       provide: HTTP_LOGGER,
-      useFactory: () => pinoHttp({ autoLogging: false }),
+      useFactory: () =>
+        pinoHttp({
+          autoLogging: false,
+          customLogLevel: function (_, res, err) {
+            if (err || res.statusCode >= 500) return 'error';
+            if (res.statusCode >= 400) return 'warn';
+            return 'info';
+          },
+          customErrorObject: function (req, res, err) {
+            return { err };
+          },
+        }),
     },
   ],
   exports: [LOGGER, HTTP_LOGGER],

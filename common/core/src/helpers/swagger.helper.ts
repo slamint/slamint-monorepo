@@ -7,8 +7,9 @@ import {
   ApiResponse,
 } from '@nestjs/swagger';
 
-export function ApiOkResponseEnvelope<TModel extends Type<unknown>>(
-  model: TModel
+export function ApiOkResponseEnvelope<T extends Type<unknown>>(
+  model: T,
+  options?: { isArray?: boolean }
 ) {
   return applyDecorators(
     ApiExtraModels(SuccessEnvelopeDto, model),
@@ -18,8 +19,14 @@ export function ApiOkResponseEnvelope<TModel extends Type<unknown>>(
           { $ref: getSchemaPath(SuccessEnvelopeDto) },
           {
             properties: {
-              success: { type: 'boolean', example: true },
-              data: { $ref: getSchemaPath(model) },
+              data: options?.isArray
+                ? {
+                    type: 'array',
+                    items: { $ref: getSchemaPath(model) },
+                  }
+                : {
+                    $ref: getSchemaPath(model),
+                  },
             },
           },
         ],

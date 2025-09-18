@@ -8,13 +8,8 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
-import { META_PUBLIC, META_AUTH, META_ROLES } from './roles.decorator';
-
-export interface JwtUser {
-  sub: string;
-  email: string;
-  roles: string[];
-}
+import { META_PUBLIC, META_AUTH, META_ROLES } from '@slamint/core';
+import { JwtUser } from './keycloak';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') implements CanActivate {

@@ -6,6 +6,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 
 import { ConfigKey } from '../config/config.module';
+import { Module } from '@nestjs/common';
 
 export enum MICRO_SERVICES {
   ACCOUNT_MANAGEMENT = 'ACCOUNT_MANAGEMENT',
@@ -27,16 +28,22 @@ function tcpClient(
   };
 }
 
-export const MicroserviceClientsModule = ClientsModule.registerAsync([
-  {
-    name: MICRO_SERVICES.ACCOUNT_MANAGEMENT,
-    inject: [ConfigService],
-    useFactory: (cs: ConfigService) =>
-      tcpClient(
-        MICRO_SERVICES.ACCOUNT_MANAGEMENT,
-        ConfigKey.ACCMGMT_MS_HOST,
-        ConfigKey.ACCMGMT_MS_PORT,
-        cs
-      ),
-  },
-]);
+@Module({
+  imports: [
+    ClientsModule.registerAsync([
+      {
+        name: MICRO_SERVICES.ACCOUNT_MANAGEMENT,
+        inject: [ConfigService],
+        useFactory: (cs: ConfigService) =>
+          tcpClient(
+            MICRO_SERVICES.ACCOUNT_MANAGEMENT,
+            ConfigKey.ACCMGMT_MS_HOST,
+            ConfigKey.ACCMGMT_MS_PORT,
+            cs
+          ),
+      },
+    ]),
+  ],
+  exports: [ClientsModule],
+})
+export class MicroserviceClientsModule {}

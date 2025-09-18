@@ -7,9 +7,14 @@ import { OidcConfigProvider } from './oidc.provider';
 import { JwtAuthGuard } from './jwt-auth.guard';
 
 import { ConfigModule } from '@nestjs/config';
+import { MicroserviceClientsModule } from '@slamint/core';
 
 @Module({
-  imports: [ConfigModule, PassportModule.register({ defaultStrategy: 'jwt' })],
+  imports: [
+    ConfigModule,
+    PassportModule.register({ defaultStrategy: 'jwt' }),
+    MicroserviceClientsModule,
+  ],
   providers: [
     OidcConfigProvider,
     JwtStrategy,

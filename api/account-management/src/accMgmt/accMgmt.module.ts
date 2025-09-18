@@ -9,6 +9,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Module } from '@nestjs/common';
 import { AccountManagementController } from './accMgmt.controller';
 import { AccountManagementService } from './accMgmt.service';
+import { AccountManagementMessagesController } from './accMgmtMsg.controller';
 
 @Module({
   imports: [
@@ -29,7 +30,10 @@ import { AccountManagementService } from './accMgmt.service';
     TypeOrmModule.forFeature([AppUser]),
     LoggerModule,
   ],
-  controllers: [AccountManagementController],
+  controllers: [
+    AccountManagementMessagesController,
+    AccountManagementController,
+  ],
   providers: [AccountManagementService, RpcContextInterceptor],
 })
 export class AccountManagement {}

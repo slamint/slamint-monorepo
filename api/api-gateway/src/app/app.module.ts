@@ -12,7 +12,7 @@ import {
   LoggerModule,
   RequestIdMiddleware,
 } from '@slamint/core';
-import { AuthModule } from '@slamint/auth';
+import { AuthModule, EnsureUserInterceptor } from '@slamint/auth';
 import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -48,17 +48,12 @@ import { AccMgmtController } from './controllers/accMgmt.controller';
   ],
   controllers: [AppController, AccMgmtController],
   providers: [
-    AuditService,
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: LoggingInterceptor,
-    },
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: ResponseInterceptor,
-    },
+    { provide: APP_INTERCEPTOR, useClass: LoggingInterceptor },
+    { provide: APP_INTERCEPTOR, useClass: EnsureUserInterceptor },
+    { provide: APP_INTERCEPTOR, useClass: ResponseInterceptor },
     { provide: APP_INTERCEPTOR, useClass: AuditInspector },
     { provide: APP_FILTER, useClass: AllExceptionFilter },
+    AuditService,
   ],
 })
 export class AppModule {
