@@ -8,7 +8,7 @@ import { ConfigService } from '@nestjs/config';
 import { ConfigKey } from '../config/config.module';
 
 export enum MICRO_SERVICES {
-  USERS = 'USERS',
+  ACCOUNT_MANAGEMENT = 'ACCOUNT_MANAGEMENT',
 }
 
 function tcpClient(
@@ -29,13 +29,13 @@ function tcpClient(
 
 export const MicroserviceClientsModule = ClientsModule.registerAsync([
   {
-    name: MICRO_SERVICES.USERS,
+    name: MICRO_SERVICES.ACCOUNT_MANAGEMENT,
     inject: [ConfigService],
     useFactory: (cs: ConfigService) =>
       tcpClient(
-        MICRO_SERVICES.USERS,
-        ConfigKey.USER_MS_HOST,
-        ConfigKey.USER_MS_PORT,
+        MICRO_SERVICES.ACCOUNT_MANAGEMENT,
+        ConfigKey.ACCMGMT_MS_HOST,
+        ConfigKey.ACCMGMT_MS_PORT,
         cs
       ),
   },

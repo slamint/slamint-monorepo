@@ -3,9 +3,17 @@
   "compileOnSave": false,
   "files": [],
   "references": [
-    { "path": "common/core" },
-    { "path": "common/auth" },
-    { "path": "api/api-gateway" },
-    { "path": "api/users" }
+    {
+      "path": "common/core"
+    },
+    {
+      "path": "common/auth"
+    },
+    {
+      "path": "api/api-gateway"
+    },
+    {
+      "path": "./api/account-management"
+    }
   ]
 }

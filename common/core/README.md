@@ -160,7 +160,7 @@ import { LOGGER } from '@slamint/core';
 
 @Injectable()
 export class SomethingService {
-  constructor(@Inject(LOGGER) private readonly logger: any) {}
+  constructor(@Inject(LOGGER) private readonly logger: LoggerLike) {}
   doWork() {
     this.logger.info({ msg: 'work started' });
   }

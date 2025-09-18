@@ -8,10 +8,11 @@ import {
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { LOGGER } from '../logging';
+import type { LoggerLike } from '../interceptors/rcpContext.interceptors';
 
 @Catch()
 export class AllExceptionFilter implements ExceptionFilter {
-  constructor(@Inject(LOGGER) private readonly logger: any) {}
+  constructor(@Inject(LOGGER) private readonly logger: LoggerLike) {}
 
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();

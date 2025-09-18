@@ -4,6 +4,8 @@ import { NestFactory } from '@nestjs/core';
 import { HTTP_LOGGER } from '@slamint/core/logging/logger.module';
 
 import { AppModule } from './app/app.module';
+import { ConfigService } from '@nestjs/config';
+import { ConfigKey } from '@slamint/core';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -47,11 +49,11 @@ async function bootstrap() {
     })
   );
   app.use(app.get(HTTP_LOGGER));
-
-  const port = Number(process.env.PORT) || 8081;
-  await app.listen(port);
+  const configService = app.get(ConfigService);
+  const port = configService.get<number>(ConfigKey.GATEWAY_PORT) ?? 8081;
+  await app.listen(Number(port));
   Logger.log(`🚀 API Gateway at http://localhost:${port}/api`);
-  Logger.log(`🚀 Swagger UI at http://localhost:${port}/api/swagger-ui`);
+  Logger.log(`🧾 Swagger UI at http://localhost:${port}/api/swagger-ui`);
 }
 
 bootstrap();

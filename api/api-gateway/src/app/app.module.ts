@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module } from '@nestjs/common';
 
 import {
   AuditService,
@@ -10,6 +10,7 @@ import {
   MicroserviceClientsModule,
   LoggingInterceptor,
   LoggerModule,
+  RequestIdMiddleware,
 } from '@slamint/core';
 import { AuthModule } from '@slamint/auth';
 import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
@@ -19,6 +20,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 
 import { AppController } from './app.controller';
 import { join } from 'path';
+import { AccMgmtController } from './controllers/accMgmt.controller';
 @Module({
   imports: [
     ServeStaticModule.forRoot({
@@ -44,7 +46,7 @@ import { join } from 'path';
     AuthModule,
     LoggerModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, AccMgmtController],
   providers: [
     AuditService,
     {
@@ -59,4 +61,8 @@ import { join } from 'path';
     { provide: APP_FILTER, useClass: AllExceptionFilter },
   ],
 })
-export class AppModule {}
+export class AppModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(RequestIdMiddleware).forRoutes('*');
+  }
+}

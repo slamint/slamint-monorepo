@@ -196,6 +196,12 @@ importers:
         specifier: ^5.1.4
         version: 5.1.4(webpack@5.101.3)
 
+  api/account-management:
+    devDependencies:
+      '@slamint/core':
+        specifier: workspace:*
+        version: link:../../common/core
+
   api/api-gateway:
     dependencies:
       '@fastify/static':
@@ -229,12 +235,6 @@ importers:
       copy-webpack-plugin:
         specifier: ^13.0.1
         version: 13.0.1(webpack@5.101.3(@swc/core@1.13.5(@swc/helpers@0.5.17))(esbuild@0.19.12)(webpack-cli@5.1.4(webpack@5.101.3)))
-
-  api/users:
-    devDependencies:
-      '@slamint/core':
-        specifier: workspace:*
-        version: link:../../common/core
 
   common/auth:
     dependencies:

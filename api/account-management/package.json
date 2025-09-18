@@ -1,5 +1,5 @@
 {
-  "name": "@slamint/users",
+  "name": "@slamint/account-management",
   "version": "0.0.1",
   "private": true,
   "nx": {
@@ -11,7 +11,7 @@
           "args": [
             "--node-env=production"
           ],
-          "cwd": "api/users"
+          "cwd": "api/account-management"
         },
         "configurations": {
           "development": {
@@ -28,8 +28,8 @@
         "cache": true,
         "executor": "@nx/js:prune-lockfile",
         "outputs": [
-          "{workspaceRoot}/api/users/dist/package.json",
-          "{workspaceRoot}/api/users/dist/pnpm-lock.yaml"
+          "{workspaceRoot}/api/account-management/dist/package.json",
+          "{workspaceRoot}/api/account-management/dist/pnpm-lock.yaml"
         ],
         "options": {
           "buildTarget": "build"
@@ -41,7 +41,7 @@
         ],
         "cache": true,
         "outputs": [
-          "{workspaceRoot}/api/users/dist/workspace_modules"
+          "{workspaceRoot}/api/account-management/dist/workspace_modules"
         ],
         "executor": "@nx/js:copy-workspace-modules",
         "options": {
@@ -63,21 +63,20 @@
           "build"
         ],
         "options": {
-          "buildTarget": "@slamint/users:build",
+          "buildTarget": "@slamint/account-management:build",
           "runBuildTargetDependencies": false
         },
         "configurations": {
           "development": {
-            "buildTarget": "@slamint/users:build:development"
+            "buildTarget": "@slamint/account-management:build:development"
           },
           "production": {
-            "buildTarget": "@slamint/users:build:production"
+            "buildTarget": "@slamint/account-management:build:production"
           }
         }
       }
     }
   },
-  "dependencies": {},
   "devDependencies": {
     "@slamint/core": "workspace:*"
   }

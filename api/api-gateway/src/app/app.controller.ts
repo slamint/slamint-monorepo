@@ -6,15 +6,17 @@ import {
   HealthDto,
 } from '@slamint/core';
 
-import { Public, Roles, RoleName, Authenticated } from '@slamint/auth';
+import { Public } from '@slamint/auth';
+
+import { Controllers, HealthEndPoints, ApiVersion } from '@slamint/core/enums';
 
 @ApiTags('Health Checks')
-@Controller('health')
+@Controller(`${Controllers.HEALTH}/${ApiVersion.VERSION_ONE}`)
 export class AppController {
   @Public()
   @ApiOkResponseEnvelope(HealthDto)
   @ApiServerGatewayTimeout()
-  @Get('live')
+  @Get(HealthEndPoints.LIVE)
   liveness() {
     return { status: 'ok' };
   }
@@ -22,7 +24,7 @@ export class AppController {
   @Public()
   @ApiOkResponseEnvelope(HealthDto)
   @ApiServerGatewayTimeout()
-  @Get('ready')
+  @Get(HealthEndPoints.READY)
   readiness() {
     return { status: 'ok' };
   }

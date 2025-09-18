@@ -1,4 +1,3 @@
-// common/core/src/logging/logging.interceptor.ts
 import {
   Injectable,
   NestInterceptor,
@@ -7,12 +6,13 @@ import {
 } from '@nestjs/common';
 import { Observable, tap } from 'rxjs';
 import type { Request, Response } from 'express';
-import { LOGGER } from '../logging';
+import { getRequestContext, LOGGER } from '../logging';
 import { Inject } from '@nestjs/common';
+import type { LoggerLike } from './rcpContext.interceptors';
 
 @Injectable()
 export class LoggingInterceptor implements NestInterceptor {
-  constructor(@Inject(LOGGER) private readonly logger: any) {}
+  constructor(@Inject(LOGGER) private readonly logger: LoggerLike) {}
 
   intercept(ctx: ExecutionContext, next: CallHandler): Observable<unknown> {
     const http = ctx.switchToHttp();
@@ -28,6 +28,18 @@ export class LoggingInterceptor implements NestInterceptor {
       ? Number(req.headers['content-length'])
       : undefined;
 
+    const ridHeader = req.headers['x-request-id'];
+    const requestId =
+      (typeof ridHeader === 'string'
+        ? ridHeader
+        : Array.isArray(ridHeader)
+        ? ridHeader[0]
+        : undefined) ?? getRequestContext()?.requestId;
+
+    if (requestId && !res.getHeader('x-request-id')) {
+      res.setHeader('x-request-id', requestId);
+    }
+
     this.logger.info({
       msg: 'http_request',
       method,
@@ -36,6 +48,7 @@ export class LoggingInterceptor implements NestInterceptor {
       userAgent: ua,
       referer,
       reqSize: contentLength,
+      requestId,
     });
 
     return next.handle().pipe(
@@ -58,6 +71,7 @@ export class LoggingInterceptor implements NestInterceptor {
             status: res.statusCode,
             durationMs,
             resSize,
+            requestId,
           });
         },
         error: (err) => {
@@ -73,6 +87,7 @@ export class LoggingInterceptor implements NestInterceptor {
               name: err?.name,
               stack: err?.stack,
             },
+            requestId,
           });
         },
       })
