@@ -20,7 +20,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 
 import { AppController } from './app.controller';
 import { join } from 'path';
-import { AccMgmtController } from './controllers/accMgmt.controller';
+import { AccMgmtController } from './controllers';
 @Module({
   imports: [
     ServeStaticModule.forRoot({
