@@ -1,10 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { EnsureFromJwtMsg, EnsureFromJwtResult, User } from '@slamint/core';
-import { AppUser } from '@slamint/core';
+import {
+  EnsureFromJwtMsg,
+  EnsureFromJwtResult,
+  User,
+  AppUser,
+} from '@slamint/core';
 import { plainToInstance } from 'class-transformer';
-import { UsersDto } from '@slamint/core/dtos/users/user.dto';
 
 @Injectable()
 export class AccountManagementService {

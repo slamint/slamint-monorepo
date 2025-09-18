@@ -117,12 +117,9 @@ export class RpcContextInterceptor
                       error:
                         err && typeof err === 'object'
                           ? {
-                              name: String(
-                                (err as { name?: unknown }).name ?? ''
-                              ),
-                              message: String(
-                                (err as { message?: unknown }).message ?? ''
-                              ),
+                              name: (err as { name?: unknown }).name ?? '',
+                              message:
+                                (err as { message?: unknown }).message ?? '',
                             }
                           : { message: String(err) },
                       tag: 'rpc_error',

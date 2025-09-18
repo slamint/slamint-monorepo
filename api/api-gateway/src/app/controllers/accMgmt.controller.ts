@@ -14,7 +14,6 @@ import {
   UserMe,
   User,
 } from '@slamint/core';
-import { UsersDto } from '@slamint/core/dtos/users/user.dto';
 import { withCtx } from '@slamint/core/logging/request.context';
 interface MeRequest extends Request {
   user: JwtUser;

@@ -29,12 +29,15 @@ export class LoggingInterceptor implements NestInterceptor {
       : undefined;
 
     const ridHeader = req.headers['x-request-id'];
-    const requestId =
-      (typeof ridHeader === 'string'
-        ? ridHeader
-        : Array.isArray(ridHeader)
-        ? ridHeader[0]
-        : undefined) ?? getRequestContext()?.requestId;
+    let requestId = '';
+
+    if (typeof ridHeader === 'string') {
+      requestId = ridHeader;
+    } else if (Array.isArray(ridHeader)) {
+      requestId = ridHeader[0];
+    } else {
+      requestId = getRequestContext()?.requestId ?? '';
+    }
 
     if (requestId && !res.getHeader('x-request-id')) {
       res.setHeader('x-request-id', requestId);

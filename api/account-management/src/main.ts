@@ -3,7 +3,7 @@ import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AccountManagement } from './accMgmt/accMgmt.module';
 import { ConfigService } from '@nestjs/config';
-import { ConfigKey, RpcContextInterceptor, LOGGER } from '@slamint/core';
+import { ConfigKey, RpcContextInterceptor } from '@slamint/core';
 
 async function bootstrap() {
   const appCtx = await NestFactory.createApplicationContext(AccountManagement);

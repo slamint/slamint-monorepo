@@ -1,9 +1,6 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { HealthDto, PublicRoute } from '@slamint/core';
-
-import {} from '@slamint/auth';
-
 import { Controllers, HealthEndPoints, ApiVersion } from '@slamint/core/enums';
 
 @ApiTags('Health Checks')

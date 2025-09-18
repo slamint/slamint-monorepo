@@ -1,4 +1,3 @@
-import { applyDecorators, Type } from '@nestjs/common';
 import {
   Get,
   Post,
@@ -8,6 +7,8 @@ import {
   Options,
   Head,
   All,
+  applyDecorators,
+  Type,
 } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import {
