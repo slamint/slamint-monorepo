@@ -1,11 +1,11 @@
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { HTTP_LOGGER } from '@slamint/core/logging/logger.module';
 
-import { AppModule } from './app/app.module';
 import { ConfigService } from '@nestjs/config';
 import { ConfigKey } from '@slamint/core';
+import { AppModule } from './app/app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {

@@ -1,13 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import {
-  EnsureFromJwtMsg,
-  EnsureFromJwtResult,
-  User,
-  AppUser,
-} from '@slamint/core';
 import { plainToInstance } from 'class-transformer';
+import { Repository } from 'typeorm';
+
+import type { EnsureFromJwtMsg, EnsureFromJwtResult } from '@slamint/core';
+import { AppUser, User } from '@slamint/core';
 
 @Injectable()
 export class AccountManagementService {
@@ -66,5 +63,17 @@ export class AccountManagementService {
     });
 
     return userDtos;
+  }
+
+  async getUserById(id: string): Promise<User> {
+    const user = await this.users.findOneBy({ id });
+
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+    return plainToInstance(User, user, {
+      excludeExtraneousValues: true,
+      enableImplicitConversion: true,
+    });
   }
 }

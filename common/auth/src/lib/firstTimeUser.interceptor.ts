@@ -1,21 +1,21 @@
 import {
+  CallHandler,
+  ExecutionContext,
+  Inject,
   Injectable,
   NestInterceptor,
-  ExecutionContext,
-  CallHandler,
-  Inject,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ClientProxy } from '@nestjs/microservices';
-import { catchError, firstValueFrom, throwError } from 'rxjs';
 import type { Request } from 'express';
+import { catchError, firstValueFrom, throwError } from 'rxjs';
 
 import {
-  MICRO_SERVICES,
   AccountManagementCommands,
-  META_PUBLIC,
   META_AUTH,
+  META_PUBLIC,
   META_ROLES,
+  MICRO_SERVICES,
 } from '@slamint/core';
 import { JwtUser } from './keycloak';
 

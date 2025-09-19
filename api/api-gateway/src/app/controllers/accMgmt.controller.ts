@@ -1,20 +1,21 @@
-import { Controller, Inject, Param, ParseIntPipe, Req } from '@nestjs/common';
+import { Controller, Inject, Param, Req } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
-import { ApiTags } from '@nestjs/swagger';
-import { JwtUser } from '@slamint/auth/lib/keycloak';
+import { ApiParam, ApiTags } from '@nestjs/swagger';
+
+import type { JwtUser } from '@slamint/auth/lib/keycloak';
 import {
   AccountManagementCommands,
   AccountManagementEndPoints,
-  RoleName,
   ApiVersion,
   AuthenticatedRoute,
   Controllers,
   MICRO_SERVICES,
+  RoleName,
   RolesRoute,
-  UserMe,
   User,
+  UserMe,
+  withCtx,
 } from '@slamint/core';
-import { withCtx } from '@slamint/core/logging/request.context';
 interface MeRequest extends Request {
   user: JwtUser;
 }
@@ -48,10 +49,18 @@ export class AccMgmtController {
     );
   }
 
-  @RolesRoute('GET', AccountManagementEndPoints.GET_USER_BY_ID, RoleName.admin)
-  getByUserID(@Param('id', ParseIntPipe) id: number) {
+  @RolesRoute(
+    'GET',
+    AccountManagementEndPoints.GET_USER_BY_ID,
+    RoleName.admin,
+    {
+      model: User,
+    }
+  )
+  @ApiParam({ name: 'id', type: String })
+  getByUserID(@Param('id') id: string) {
     return this.accMgmt.send(
-      AccountManagementCommands.ACC_LIST_USERS,
+      AccountManagementCommands.ACC_GET_USER_BY_ID,
       withCtx({ id })
     );
   }

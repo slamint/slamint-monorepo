@@ -1,12 +1,12 @@
-import {
-  Transport,
-  ClientsModule,
-  ClientProviderOptions,
-} from '@nestjs/microservices';
 import { ConfigService } from '@nestjs/config';
+import {
+  ClientProviderOptions,
+  ClientsModule,
+  Transport,
+} from '@nestjs/microservices';
 
-import { ConfigKey } from '../config/config.module';
 import { Module } from '@nestjs/common';
+import { ConfigKey } from '../config/config.module';
 
 export enum MICRO_SERVICES {
   ACCOUNT_MANAGEMENT = 'ACCOUNT_MANAGEMENT',

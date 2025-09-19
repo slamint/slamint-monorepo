@@ -1,25 +1,25 @@
-import { MiddlewareConsumer, Module } from '@nestjs/common';
-
-import {
-  AuditService,
-  ResponseInterceptor,
-  AuditInspector,
-  AllExceptionFilter,
-  AuditLog,
-  ConfigKey,
-  MicroserviceClientsModule,
-  LoggingInterceptor,
-  LoggerModule,
-  RequestIdMiddleware,
-} from '@slamint/core';
-import { AuthModule, EnsureUserInterceptor } from '@slamint/auth';
-import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
+import { MiddlewareConsumer, Module, RequestMethod } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { ServeStaticModule } from '@nestjs/serve-static';
+import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { AppController } from './app.controller';
+import { AuthModule, EnsureUserInterceptor } from '@slamint/auth';
+import {
+  AllExceptionFilter,
+  AuditInspector,
+  AuditLog,
+  AuditService,
+  ConfigKey,
+  LoggerModule,
+  LoggingInterceptor,
+  MicroserviceClientsModule,
+  RequestIdMiddleware,
+  ResponseInterceptor,
+} from '@slamint/core';
+
 import { join } from 'path';
+import { AppController } from './app.controller';
 import { AccMgmtController } from './controllers';
 @Module({
   imports: [
@@ -58,6 +58,9 @@ import { AccMgmtController } from './controllers';
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(RequestIdMiddleware).forRoutes('*');
+    consumer.apply(RequestIdMiddleware).forRoutes({
+      path: '*',
+      method: RequestMethod.ALL,
+    });
   }
 }

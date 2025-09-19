@@ -1,9 +1,9 @@
 import {
-  Entity,
-  PrimaryGeneratedColumn,
   Column,
-  Index,
   CreateDateColumn,
+  Entity,
+  Index,
+  PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 
@@ -30,9 +30,6 @@ export class AppUser {
 
   @Column({ type: 'text', default: 'en-US' })
   locale!: string;
-
-  //   @Column({ type: 'text', nullable: true, name: 'avatar_url' })
-  //   avatarUrl?: string;
 
   @Column({ type: 'timestamptz', nullable: true, name: 'first_login_at' })
   firstLoginAt?: Date;

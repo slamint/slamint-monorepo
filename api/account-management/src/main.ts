@@ -1,9 +1,9 @@
-import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { Logger } from '@nestjs/common';
-import { NestFactory } from '@nestjs/core';
-import { AccountManagement } from './accMgmt/accMgmt.module';
 import { ConfigService } from '@nestjs/config';
+import { NestFactory } from '@nestjs/core';
+import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { ConfigKey, RpcContextInterceptor } from '@slamint/core';
+import { AccountManagement } from './accMgmt/accMgmt.module';
 
 async function bootstrap() {
   const appCtx = await NestFactory.createApplicationContext(AccountManagement);

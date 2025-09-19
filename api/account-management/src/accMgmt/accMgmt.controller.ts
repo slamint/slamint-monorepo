@@ -1,21 +1,9 @@
 import { Controller } from '@nestjs/common';
+import { MessagePattern, Payload } from '@nestjs/microservices';
 
 import { AccountManagementCommands, User } from '@slamint/core';
+
 import { AccountManagementService } from './accMgmt.service';
-import { MessagePattern } from '@nestjs/microservices';
-export interface EnsureFromJwtMsg {
-  sub: string;
-  iss?: string;
-  email: string;
-  email_verified?: boolean;
-  name?: string;
-  preferred_username?: string;
-  realm_access?: { roles?: string[] };
-}
-export interface EnsureFromJwtResult {
-  userId: string;
-  isFirstLogin: boolean;
-}
 
 @Controller()
 export class AccountManagementController {
@@ -24,5 +12,10 @@ export class AccountManagementController {
   @MessagePattern(AccountManagementCommands.ACC_LIST_USERS)
   getallUsers(): Promise<User[]> {
     return this.svc.getAllUsers();
+  }
+
+  @MessagePattern(AccountManagementCommands.ACC_GET_USER_BY_ID)
+  getUserById(@Payload() data: { id: string }): Promise<User> {
+    return this.svc.getUserById(data.id);
   }
 }

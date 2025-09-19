@@ -1,13 +1,13 @@
 import {
-  Get,
-  Post,
-  Put,
-  Patch,
-  Delete,
-  Options,
-  Head,
   All,
   applyDecorators,
+  Delete,
+  Get,
+  Head,
+  Options,
+  Patch,
+  Post,
+  Put,
   Type,
 } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
@@ -17,8 +17,8 @@ import {
   ApiServerErrorEnvelope,
   ApiServerGatewayTimeout,
 } from '../helpers';
-import { Authenticated, Roles } from './roles.decorator';
 import { Serialize } from '../interceptors/serialize.interceptor';
+import { Authenticated, Roles } from './roles.decorator';
 
 type HttpMethod =
   | 'GET'

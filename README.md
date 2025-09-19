@@ -1,8 +1,8 @@
 # 🎟️ SLA Mint – Open Source Ticketing & Helpdesk Tool
+
 <div align="center">
 <img width="500" height="500" alt="image" src="https://github.com/user-attachments/assets/3155df35-30c3-4d41-9b5f-714d623fa2b5" />
 </div>
-
 
 > **A community-driven alternative to costly service desk platforms.**  
 > SLA Mint helps organizations manage IT support, track SLAs, and deliver faster resolutions — all in a transparent, open-source way.
@@ -17,10 +17,10 @@ It empowers **businesses, startups, and communities** to centralize support oper
 ✨ **Key Value**: Streamlined operations, SLA compliance, better insights, and reduced costs.
 
 ---
-| [![SonarQube Cloud](https://sonarcloud.io/images/project_badges/sonarcloud-light.svg)](https://sonarcloud.io/summary/new_code?id=slamint_slamint-monorepo) |
-| :------: |
-|[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=slamint_slamint-monorepo&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=slamint_slamint-monorepo) [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=slamint_slamint-monorepo&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=slamint_slamint-monorepo) [![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=slamint_slamint-monorepo&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=slamint_slamint-monorepo) [![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=slamint_slamint-monorepo&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=slamint_slamint-monorepo) [![Bugs](https://sonarcloud.io/api/project_badges/measure?project=slamint_slamint-monorepo&metric=bugs)](https://sonarcloud.io/summary/new_code?id=slamint_slamint-monorepo)|
 
+|                                                                                                                                                                                                                                                                                                                                                                                                              [![SonarQube Cloud](https://sonarcloud.io/images/project_badges/sonarcloud-light.svg)](https://sonarcloud.io/summary/new_code?id=slamint_slamint-monorepo)                                                                                                                                                                                                                                                                                                                                                                                                              |
+| :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
+| [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=slamint_slamint-monorepo&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=slamint_slamint-monorepo) [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=slamint_slamint-monorepo&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=slamint_slamint-monorepo) [![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=slamint_slamint-monorepo&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=slamint_slamint-monorepo) [![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=slamint_slamint-monorepo&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=slamint_slamint-monorepo) [![Bugs](https://sonarcloud.io/api/project_badges/measure?project=slamint_slamint-monorepo&metric=bugs)](https://sonarcloud.io/summary/new_code?id=slamint_slamint-monorepo) |
 
 ## 🛑 2. Business Problems
 

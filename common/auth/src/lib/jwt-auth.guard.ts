@@ -2,13 +2,13 @@
 import {
   CanActivate,
   ExecutionContext,
+  ForbiddenException,
   Injectable,
   UnauthorizedException,
-  ForbiddenException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
-import { META_PUBLIC, META_AUTH, META_ROLES } from '@slamint/core';
+import { META_AUTH, META_PUBLIC, META_ROLES } from '@slamint/core';
 import { JwtUser } from './keycloak';
 
 @Injectable()

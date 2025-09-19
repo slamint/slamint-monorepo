@@ -1,12 +1,14 @@
+import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
+
 import {
   AppUser,
   ConfigKey,
   LoggerModule,
   RpcContextInterceptor,
 } from '@slamint/core';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { Module } from '@nestjs/common';
+
 import { AccountManagementController } from './accMgmt.controller';
 import { AccountManagementService } from './accMgmt.service';
 import { AccountManagementMessagesController } from './accMgmtMsg.controller';

@@ -1,13 +1,13 @@
 import {
+  CallHandler,
+  ExecutionContext,
+  Inject,
   Injectable,
   NestInterceptor,
-  ExecutionContext,
-  CallHandler,
 } from '@nestjs/common';
-import { Observable, tap } from 'rxjs';
 import type { Request, Response } from 'express';
+import { Observable, tap } from 'rxjs';
 import { getRequestContext, LOGGER } from '../logging';
-import { Inject } from '@nestjs/common';
 import type { LoggerLike } from './rcpContext.interceptors';
 
 @Injectable()

@@ -1,11 +1,11 @@
-import { SuccessEnvelopeDto, ErrorInfoDto } from '../dtos';
 import { applyDecorators, Type } from '@nestjs/common';
 import {
   ApiExtraModels,
   ApiOkResponse,
-  getSchemaPath,
   ApiResponse,
+  getSchemaPath,
 } from '@nestjs/swagger';
+import { ErrorInfoDto, SuccessEnvelopeDto } from '../dtos';
 
 export function ApiOkResponseEnvelope<T extends Type<unknown>>(
   model: T,

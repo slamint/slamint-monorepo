@@ -1,10 +1,10 @@
 // common/core/src/config/config.module.ts
-import { Module, DynamicModule } from '@nestjs/common';
+import { DynamicModule, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { config as dotenvLoad } from 'dotenv';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { config as dotenvLoad } from 'dotenv';
-import { configSchema, AppConfig } from './config.schema';
+import { AppConfig, configSchema } from './config.schema';
 
 function findDotenvUp(startDir = process.cwd()): string | undefined {
   let dir = startDir;

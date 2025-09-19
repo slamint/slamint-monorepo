@@ -123,7 +123,11 @@ Emitted by `AllExceptionFilter`:
   "success": false,
   "error": {
     "message": "string",
-    "details": { "message": "string", "error": "BadRequestException", "statusCode": 400 }
+    "details": {
+      "message": "string",
+      "error": "BadRequestException",
+      "statusCode": 400
+    }
   },
   "path": "/api/path",
   "timestamp": "2025-09-16T02:59:58.669Z"

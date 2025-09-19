@@ -1,4 +1,4 @@
-import { Module, Global } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import pino from 'pino';
 import pinoHttp from 'pino-http';
 import { getRequestContext } from './request.context';
