@@ -7,11 +7,12 @@ import {
   Inject,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
+import type { LoggerLike } from '../interceptors/rcpContext.interceptors';
 import { LOGGER } from '../logging';
 
 @Catch()
 export class AllExceptionFilter implements ExceptionFilter {
-  constructor(@Inject(LOGGER) private readonly logger: any) {}
+  constructor(@Inject(LOGGER) private readonly logger: LoggerLike) {}
 
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
@@ -51,7 +52,7 @@ export class AllExceptionFilter implements ExceptionFilter {
       path: req.originalUrl ?? req.url,
       status,
       error: {
-        message,
+        message: message ?? 'Internal Server Error',
         details,
         // If you want full stack in logs, remove redaction for error.stack in logger module
         stack: exception instanceof Error ? exception.stack : undefined,

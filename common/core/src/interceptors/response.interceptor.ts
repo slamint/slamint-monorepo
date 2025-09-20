@@ -18,15 +18,15 @@ export class ResponseInterceptor<T = unknown>
 {
   intercept(
     _ctx: ExecutionContext,
-    next: CallHandler<T>,
+    next: CallHandler<T>
   ): Observable<ApiResponse<T>> {
     return next.handle().pipe(
       map(
         (data: T): ApiResponse<T> => ({
           success: true,
           data,
-        }),
-      ),
+        })
+      )
     );
   }
 }

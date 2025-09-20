@@ -1,14 +1,15 @@
-import { SuccessEnvelopeDto, ErrorInfoDto } from '../dtos';
 import { applyDecorators, Type } from '@nestjs/common';
 import {
   ApiExtraModels,
   ApiOkResponse,
-  getSchemaPath,
   ApiResponse,
+  getSchemaPath,
 } from '@nestjs/swagger';
+import { ErrorInfoDto, SuccessEnvelopeDto } from '../dtos';
 
-export function ApiOkResponseEnvelope<TModel extends Type<unknown>>(
-  model: TModel
+export function ApiOkResponseEnvelope<T extends Type<unknown>>(
+  model: T,
+  options?: { isArray?: boolean }
 ) {
   return applyDecorators(
     ApiExtraModels(SuccessEnvelopeDto, model),
@@ -18,8 +19,14 @@ export function ApiOkResponseEnvelope<TModel extends Type<unknown>>(
           { $ref: getSchemaPath(SuccessEnvelopeDto) },
           {
             properties: {
-              success: { type: 'boolean', example: true },
-              data: { $ref: getSchemaPath(model) },
+              data: options?.isArray
+                ? {
+                    type: 'array',
+                    items: { $ref: getSchemaPath(model) },
+                  }
+                : {
+                    $ref: getSchemaPath(model),
+                  },
             },
           },
         ],

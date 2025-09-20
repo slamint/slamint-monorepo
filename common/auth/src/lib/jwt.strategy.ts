@@ -1,12 +1,12 @@
-import { Injectable, Inject } from '@nestjs/common';
-import { PassportStrategy } from '@nestjs/passport';
-import { ExtractJwt, Strategy } from 'passport-jwt';
-import * as jwksRsa from 'jwks-rsa';
+import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { PassportStrategy } from '@nestjs/passport';
+import * as jwksRsa from 'jwks-rsa';
+import { ExtractJwt, Strategy } from 'passport-jwt';
 import { OIDC_CONFIG, type OidcConfig } from './oidc.provider';
 
-import { JwtUser, KcJwtPayload } from './keycloak';
 import { ConfigKey } from '@slamint/core';
+import { JwtUser, KcJwtPayload } from './keycloak';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
@@ -33,13 +33,14 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   async validate(payload: KcJwtPayload): Promise<JwtUser> {
     const realmRoles = payload.realm_access?.roles ?? [];
     const directRoles =
-      payload.resource_access?.[thisAudience(this.config) ?? ''].roles ?? [];
+      payload.resource_access?.[thisAudience(this.config) ?? '']?.roles ?? [];
     const roles = Array.from(new Set([...directRoles, ...realmRoles]));
 
     return {
       sub: payload.sub ?? '',
       email: payload.email ?? '',
-      username: payload.preferred_username ?? '',
+      preferred_username: payload.preferred_username ?? '',
+      name: payload.name,
       roles,
     };
   }

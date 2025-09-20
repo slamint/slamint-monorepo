@@ -10,6 +10,7 @@ export interface KcJwtPayload {
   preferred_username?: string;
   realm_access?: KcRealmAccess;
   resource_access?: KcResourceAccess;
+  name?: string;
   iss: string;
   aud?: string | string[];
 }
@@ -29,6 +30,10 @@ export function extractRoles(
 export interface JwtUser {
   sub: string;
   email: string;
-  username: string;
   roles: string[];
+  iss?: string;
+  preferred_username?: string;
+  name?: string;
+  email_verified?: boolean;
+  realm_access?: { roles?: string[] };
 }
