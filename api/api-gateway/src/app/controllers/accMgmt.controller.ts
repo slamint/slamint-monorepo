@@ -1,6 +1,7 @@
 import { Controller, Inject, Param, Req } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { ApiParam, ApiTags } from '@nestjs/swagger';
+import { catchError } from 'rxjs/operators';
 
 import type { JwtUser } from '@slamint/auth/lib/keycloak';
 import {
@@ -9,11 +10,11 @@ import {
   ApiVersion,
   AuthenticatedRoute,
   Controllers,
+  mapRpcToHttp,
   MICRO_SERVICES,
   RoleName,
   RolesRoute,
   User,
-  UserMe,
   withCtx,
 } from '@slamint/core';
 interface MeRequest extends Request {
@@ -27,26 +28,20 @@ export class AccMgmtController {
     private readonly accMgmt: ClientProxy
   ) {}
 
-  @AuthenticatedRoute('GET', AccountManagementEndPoints.ME, { model: UserMe })
+  @AuthenticatedRoute('GET', AccountManagementEndPoints.ME, { model: User })
   async getMe(@Req() req: MeRequest) {
-    return {
-      sub: req.user.sub,
-      email: req.user.email,
-      name: req.user.name,
-      username: req.user.preferred_username,
-      roles: req.user.roles,
-      relmAccess: req.user.realm_access,
-    };
+    return this.accMgmt
+      .send(AccountManagementCommands.ACC_ME, withCtx({ sub: req.user?.sub }))
+      .pipe(catchError(mapRpcToHttp));
   }
 
   @RolesRoute('GET', AccountManagementEndPoints.LIST_USERS, RoleName.admin, {
     model: [User],
   })
   listUsers() {
-    return this.accMgmt.send(
-      AccountManagementCommands.ACC_LIST_USERS,
-      withCtx({})
-    );
+    return this.accMgmt
+      .send(AccountManagementCommands.ACC_LIST_USERS, withCtx({}))
+      .pipe(catchError(mapRpcToHttp));
   }
 
   @RolesRoute(
@@ -59,9 +54,8 @@ export class AccMgmtController {
   )
   @ApiParam({ name: 'id', type: String })
   getByUserID(@Param('id') id: string) {
-    return this.accMgmt.send(
-      AccountManagementCommands.ACC_GET_USER_BY_ID,
-      withCtx({ id })
-    );
+    return this.accMgmt
+      .send(AccountManagementCommands.ACC_GET_USER_BY_ID, withCtx({ id }))
+      .pipe(catchError(mapRpcToHttp));
   }
 }
