@@ -4,7 +4,7 @@ import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { AuthModule, EnsureUserInterceptor } from '@slamint/auth';
+import { AuthModule, FirstTimeUserInterceptor } from '@slamint/auth';
 import {
   AllExceptionFilter,
   AuditInspector,
@@ -49,7 +49,7 @@ import { AccMgmtController } from './controllers';
   controllers: [AppController, AccMgmtController],
   providers: [
     { provide: APP_INTERCEPTOR, useClass: LoggingInterceptor },
-    { provide: APP_INTERCEPTOR, useClass: EnsureUserInterceptor },
+    { provide: APP_INTERCEPTOR, useClass: FirstTimeUserInterceptor },
     { provide: APP_INTERCEPTOR, useClass: ResponseInterceptor },
     { provide: APP_INTERCEPTOR, useClass: AuditInspector },
     { provide: APP_FILTER, useClass: AllExceptionFilter },

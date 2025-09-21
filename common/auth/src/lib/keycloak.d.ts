@@ -19,21 +19,25 @@ export function extractRoles(
   p: KcJwtPayload,
   includeClients?: string[]
 ): string[] {
-  const realm = p.realm_access?.roles ?? [];
-  const clientIds = includeClients ?? Object.keys(p.resource_access ?? {});
-  const client = clientIds.flatMap(
-    (cid) => p.resource_access?.[cid]?.roles ?? []
+  const ignore = new Set([
+    'offline_access',
+    'uma_authorization',
+    'default-roles-slamint',
+    'manage-account',
+    'manage-account-links',
+    'view-profile',
+  ]);
+  const realm = (u.realm_access?.roles ?? []).map((r) => r.toLowerCase());
+  const clientId = (u as any).azp ?? (u as any).clientId;
+  const client = clientId
+    ? (u.resource_access?.[clientId]?.roles ?? []).map((r) => r.toLowerCase())
+    : [];
+  return Array.from(new Set([...realm, ...client])).filter(
+    (r) => !ignore.has(r)
   );
-  return Array.from(new Set([...realm, ...client])).map((r) => r.toLowerCase());
 }
 
-export interface JwtUser {
-  sub: string;
-  email: string;
+export interface JwtUser extends KcJwtPayload {
   roles: string[];
-  iss?: string;
-  preferred_username?: string;
-  name?: string;
   email_verified?: boolean;
-  realm_access?: { roles?: string[] };
 }

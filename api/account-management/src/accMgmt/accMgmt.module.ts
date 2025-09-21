@@ -5,13 +5,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import {
   AppUser,
   ConfigKey,
+  Department,
   LoggerModule,
+  Role,
   RpcContextInterceptor,
 } from '@slamint/core';
 
 import { AccountManagementController } from './accMgmt.controller';
 import { AccountManagementService } from './accMgmt.service';
-import { AccountManagementMessagesController } from './accMgmtMsg.controller';
 
 @Module({
   imports: [
@@ -29,13 +30,10 @@ import { AccountManagementMessagesController } from './accMgmtMsg.controller';
         synchronize: true,
       }),
     }),
-    TypeOrmModule.forFeature([AppUser]),
+    TypeOrmModule.forFeature([AppUser, Role, Department]),
     LoggerModule,
   ],
-  controllers: [
-    AccountManagementMessagesController,
-    AccountManagementController,
-  ],
+  controllers: [AccountManagementController],
   providers: [AccountManagementService, RpcContextInterceptor],
 })
 export class AccountManagement {}

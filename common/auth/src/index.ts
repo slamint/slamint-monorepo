@@ -1,3 +1,3 @@
 export { AuthModule } from './lib/auth.module';
 
-export { EnsureUserInterceptor } from './lib/firstTimeUser.interceptor';
+export { FirstTimeUserInterceptor } from './lib/firstTimeUser.interceptor';

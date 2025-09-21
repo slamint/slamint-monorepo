@@ -3,9 +3,14 @@ import {
   CreateDateColumn,
   Entity,
   Index,
+  JoinTable,
+  ManyToMany,
+  ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { Department } from '../department/department.entity';
+import { Role } from './roles.entity';
 
 @Entity('users')
 export class AppUser {
@@ -28,8 +33,19 @@ export class AppUser {
   @Column({ type: 'text', nullable: true })
   phone?: string;
 
-  @Column({ type: 'text', default: 'en-US' })
-  locale!: string;
+  @ManyToMany(() => Role, { eager: false })
+  @JoinTable({
+    name: 'user_roles',
+    joinColumn: { name: 'usersId', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'rolesId', referencedColumnName: 'id' },
+  })
+  roles!: Role[];
+
+  @ManyToOne(() => Department, { nullable: true, eager: false })
+  department?: Department;
+
+  @ManyToOne(() => AppUser, { nullable: true, eager: false })
+  reportingManager?: AppUser;
 
   @Column({ type: 'timestamptz', nullable: true, name: 'first_login_at' })
   firstLoginAt?: Date;

@@ -1,6 +1,6 @@
-import { Controller, Inject, Param, Req } from '@nestjs/common';
+import { Body, Controller, Inject, Param, Req } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
-import { ApiParam, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiParam, ApiTags } from '@nestjs/swagger';
 import { catchError } from 'rxjs/operators';
 
 import type { JwtUser } from '@slamint/auth/lib/keycloak';
@@ -14,9 +14,11 @@ import {
   MICRO_SERVICES,
   RoleName,
   RolesRoute,
+  UpdateMe,
   User,
   withCtx,
 } from '@slamint/core';
+import { firstValueFrom } from 'rxjs';
 interface MeRequest extends Request {
   user: JwtUser;
 }
@@ -27,21 +29,38 @@ export class AccMgmtController {
     @Inject(MICRO_SERVICES.ACCOUNT_MANAGEMENT)
     private readonly accMgmt: ClientProxy
   ) {}
-
   @AuthenticatedRoute('GET', AccountManagementEndPoints.ME, { model: User })
   async getMe(@Req() req: MeRequest) {
     return this.accMgmt
-      .send(AccountManagementCommands.ACC_ME, withCtx({ sub: req.user?.sub }))
+      .send(
+        AccountManagementCommands.ACC_ME,
+        withCtx({ sub: req.user?.sub, roles: req.user?.roles ?? [] })
+      )
       .pipe(catchError(mapRpcToHttp));
+  }
+
+  // Update Me Data
+  @AuthenticatedRoute('PATCH', AccountManagementEndPoints.ME, {
+    model: User,
+  })
+  @ApiBody({ type: UpdateMe })
+  async patchMe(@Body() data: UpdateMe) {
+    return firstValueFrom(
+      this.accMgmt
+        .send(AccountManagementCommands.ACC_ME_UPDATE, withCtx(data))
+        .pipe(catchError(mapRpcToHttp))
+    );
   }
 
   @RolesRoute('GET', AccountManagementEndPoints.LIST_USERS, RoleName.admin, {
     model: [User],
   })
   listUsers() {
-    return this.accMgmt
-      .send(AccountManagementCommands.ACC_LIST_USERS, withCtx({}))
-      .pipe(catchError(mapRpcToHttp));
+    return firstValueFrom(
+      this.accMgmt
+        .send(AccountManagementCommands.ACC_LIST_USERS, withCtx({}))
+        .pipe(catchError(mapRpcToHttp))
+    );
   }
 
   @RolesRoute(

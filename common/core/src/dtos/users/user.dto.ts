@@ -1,22 +1,35 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Exclude, Expose, Type } from 'class-transformer';
+import { Expose, Type } from 'class-transformer';
 import { randomUUID } from 'crypto';
+import { RoleName } from '../../decorators/roles.decorator';
+import { DepartmentDto } from '../department/department.dto';
+
+export class LiteUserRef {
+  @Expose()
+  @ApiProperty({ example: randomUUID() })
+  id!: string;
+
+  @Expose()
+  @ApiProperty({ example: 'johndoe' })
+  name?: string;
+
+  @Expose()
+  @ApiProperty({ example: 'johndoe@example.com' })
+  email?: string;
+}
 
 export class User {
   @Expose()
   @ApiProperty({ example: randomUUID() })
   id!: string;
 
-  @Exclude()
-  sub!: string;
+  @Expose()
+  @ApiProperty({ example: 'johndoe' })
+  name?: string;
 
   @Expose()
   @ApiProperty({ example: 'johndoe@example.com' })
-  email!: string;
-
-  @Expose()
-  @ApiProperty({ example: 'johndoe' })
-  name!: string;
+  email?: string;
 
   @Expose()
   @ApiProperty({ example: 'johndoe' })
@@ -25,12 +38,6 @@ export class User {
   @Expose()
   @ApiProperty({ example: '+6012481278' })
   phone!: string;
-
-  @Exclude()
-  locale!: string;
-
-  @Exclude()
-  firstLoginAt?: Date;
 
   @Expose()
   @ApiProperty({ example: Date.now() })
@@ -43,11 +50,35 @@ export class User {
   @Expose()
   @ApiProperty({ example: Date.now() })
   lastLoginAt!: string;
-}
 
-export class UsersDto {
   @Expose()
-  @ApiProperty({ type: [User] })
-  @Type(() => User)
-  users!: User[];
+  @ApiProperty({ example: RoleName.engineer })
+  roles?: string[];
+
+  @Expose({ groups: ['manager', 'engineer', 'admin'] })
+  @ApiProperty({
+    example: {
+      id: randomUUID(),
+      name: 'IT',
+      email: 'it@example.com',
+      departmentHead: {
+        id: randomUUID(),
+        name: 'michael',
+        email: 'michael@example.com',
+      },
+    },
+  })
+  @Type(() => DepartmentDto)
+  department?: DepartmentDto;
+
+  @Expose({ groups: ['manager', 'engineer', 'admin'] })
+  @ApiProperty({
+    example: {
+      id: randomUUID(),
+      name: 'michael',
+      email: 'michael@example.com',
+    },
+  })
+  @Type(() => LiteUserRef)
+  reportingManager?: LiteUserRef;
 }

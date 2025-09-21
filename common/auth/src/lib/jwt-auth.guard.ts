@@ -34,15 +34,10 @@ export class JwtAuthGuard extends AuthGuard('jwt') implements CanActivate {
       [handler, klass]
     );
 
-    // If explicitly Authenticated or Roles present, force auth path
     const mustAuthenticate = Boolean(
       isAuth || (requiredRoles && requiredRoles.length > 0)
     );
-
-    // Public only if marked @Public AND not explicitly @Authenticated
     if (isPublic && !mustAuthenticate) return true;
-
-    // Otherwise require JWT (private-by-default)
     return super.canActivate(ctx);
   }
 

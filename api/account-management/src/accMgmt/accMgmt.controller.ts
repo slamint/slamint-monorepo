@@ -1,7 +1,8 @@
 import { Controller } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 
-import { AccountManagementCommands, User } from '@slamint/core';
+import type { EnsureFromJwtMsg, EnsureFromJwtResult } from '@slamint/core';
+import { AccountManagementCommands, UpdateMe, User } from '@slamint/core';
 
 import { AccountManagementService } from './accMgmt.service';
 
@@ -9,9 +10,21 @@ import { AccountManagementService } from './accMgmt.service';
 export class AccountManagementController {
   constructor(private readonly svc: AccountManagementService) {}
 
+  @MessagePattern(AccountManagementCommands.ACC_ENSURE_FROM_JWT)
+  ensureFromJwt(msg: EnsureFromJwtMsg): Promise<EnsureFromJwtResult> {
+    return this.svc.ensureFromJwt(msg);
+  }
+
   @MessagePattern(AccountManagementCommands.ACC_ME)
-  getMe(@Payload() { data }: { data: { sub: string } }): Promise<User> {
-    return this.svc.getMe(data.sub);
+  getMe(
+    @Payload() { data }: { data: { sub: string; roles: string[] } }
+  ): Promise<User> {
+    return this.svc.getMe(data.sub, data.roles ?? []);
+  }
+
+  @MessagePattern(AccountManagementCommands.ACC_ME_UPDATE)
+  updateMe(@Payload() { data }: { data: UpdateMe }): Promise<User> {
+    return this.svc.updateMe(data);
   }
 
   @MessagePattern(AccountManagementCommands.ACC_LIST_USERS)
