@@ -25,17 +25,11 @@ function pickHighestRole(tokenRoles: string[] | undefined): RoleName | null {
 }
 
 // Optional groups for class-transformer DTOs
-function groupsFromRole(role: RoleName): string[] {
-  switch (role) {
-    case RoleName.admin:
-      return [RoleName.admin, RoleName.manager, RoleName.engineer];
-    case RoleName.manager:
-      return [RoleName.manager, RoleName.engineer];
-    case RoleName.engineer:
-      return [RoleName.engineer];
-    default:
-      return [];
-  }
+function groupsFromViewer(role: RoleName): string[] {
+  if (role === RoleName.admin) return ['admin', 'manager', 'engineer'];
+  if (role === RoleName.manager) return ['manager', 'engineer'];
+  if (role === RoleName.engineer) return ['engineer'];
+  return []; // 'user' -> hide gated fields
 }
 
 // Only relations you actually need
@@ -47,14 +41,16 @@ const userViewRelations = {
 // Base entity field selection only (no unmapped FK props here)
 const userViewSelect: FindOptionsSelect<AppUser> = {
   id: true,
+  sub: true,
   email: true,
   name: true,
   username: true,
   phone: true,
   role: true,
+  status: true,
+  createdAt: true,
   updatedAt: true,
   lastLoginAt: true,
-  status: true,
 };
 
 @Injectable()
@@ -74,7 +70,7 @@ export class AccountManagementService {
     return user;
   }
 
-  private toUserDTO(entity: AppUser, groups?: string[]): User {
+  private toUserDTO(entity: AppUser, viewerRole: RoleName): User {
     const shaped = {
       ...entity,
       role: entity.role,
@@ -92,7 +88,7 @@ export class AccountManagementService {
     return plainToInstance(User, shaped, {
       excludeExtraneousValues: true,
       enableImplicitConversion: true,
-      groups,
+      groups: groupsFromViewer(viewerRole),
     });
   }
 
@@ -224,11 +220,8 @@ export class AccountManagementService {
     }
 
     const user = await this.loadUserOrThrow({ sub });
-    const effectiveRole =
-      user.role ?? pickHighestRole(tokenRoles) ?? RoleName.user;
-    const groups = groupsFromRole(effectiveRole);
-    console.log(effectiveRole, groups, this.toUserDTO(user, groups));
-    return this.toUserDTO(user, groups);
+
+    return this.toUserDTO(user, user.role);
   }
 
   async updateMe(data: UpdateMe): Promise<User> {
@@ -248,13 +241,11 @@ export class AccountManagementService {
       if (k in patch)
         throw rpcErr({
           code: RPCCode.BAD_REQUEST,
-          message: '`Cannot update ${k} via /me`',
+          message: `Cannot update ${k} via /me`,
         });
 
     this.applyPatch(user, patch);
     const updated = await this.users.save(user);
-
-    const groups = groupsFromRole(updated.role);
-    return this.toUserDTO(updated, groups);
+    return this.toUserDTO(updated, user.role);
   }
 }

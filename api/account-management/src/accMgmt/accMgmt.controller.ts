@@ -16,12 +16,10 @@ export class AccountManagementController {
   }
 
   @MessagePattern(AccountManagementCommands.ACC_ME)
-  async getMe(
+  getMe(
     @Payload() { data }: { data: { sub: string; roles: string[] } }
   ): Promise<User> {
-    const returnData = await this.svc.getMe(data.sub, data.roles ?? []);
-    console.log(returnData);
-    return returnData;
+    return this.svc.getMe(data.sub, data.roles ?? []);
   }
 
   @MessagePattern(AccountManagementCommands.ACC_ME_UPDATE)

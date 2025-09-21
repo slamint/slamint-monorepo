@@ -47,15 +47,15 @@ export class User {
   @ApiProperty({ enum: RoleName, example: RoleName.engineer })
   role!: RoleName;
 
-  @Expose({ groups: ['manager', 'engineer', 'admin'] })
+  @Expose()
   @ApiProperty({
     example: { id: randomUUID(), code: 'ENG', name: 'Engineering' },
     required: false,
   })
   @Type(() => DepartmentDto)
-  department?: DepartmentDto;
+  department?: DepartmentDto | null;
 
-  @Expose({ groups: ['manager', 'engineer', 'admin'] })
+  @Expose()
   @ApiProperty({
     example: {
       id: randomUUID(),
@@ -65,7 +65,7 @@ export class User {
     required: false,
   })
   @Type(() => LiteUserRef)
-  reportingManager?: LiteUserRef;
+  reportingManager?: LiteUserRef | null;
 
   @Expose()
   @ApiProperty({ example: 'active', enum: ['active', 'locked'] })
