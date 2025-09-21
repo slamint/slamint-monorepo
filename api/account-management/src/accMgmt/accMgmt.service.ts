@@ -33,7 +33,7 @@ export class AccountManagementService {
           .map((r) => r.toLowerCase())
           .filter((r): r is RoleName => ALLOWED.has(r as RoleName))
       )
-    ) as RoleName[];
+    );
   }
   private async syncRolesFromToken(sub: string, tokenRoles: string[]) {
     const wanted = this.normalizeTokenRoles(tokenRoles);
