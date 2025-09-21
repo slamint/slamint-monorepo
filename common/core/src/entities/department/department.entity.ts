@@ -1,11 +1,18 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-import { AppUser } from '../users/user.entity';
+// department.entity.ts
+import { Column, Entity, Index, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('departments')
 export class Department {
-  @PrimaryGeneratedColumn('uuid') id!: string;
-  @Column({ unique: true }) name!: string;
+  @PrimaryGeneratedColumn('uuid')
+  id!: string;
 
-  @ManyToOne(() => AppUser, { nullable: true, eager: false })
-  departmentHead?: AppUser;
+  @Index({ unique: true })
+  @Column({ length: 64 })
+  code!: string;
+
+  @Column({ length: 128 })
+  name!: string;
+
+  @Column({ default: true })
+  isActive!: boolean;
 }

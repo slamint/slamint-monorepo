@@ -1,4 +1,4 @@
-import { Controller } from '@nestjs/common';
+import { Controller, UsePipes, ValidationPipe } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 
 import type { EnsureFromJwtMsg, EnsureFromJwtResult } from '@slamint/core';
@@ -16,13 +16,16 @@ export class AccountManagementController {
   }
 
   @MessagePattern(AccountManagementCommands.ACC_ME)
-  getMe(
+  async getMe(
     @Payload() { data }: { data: { sub: string; roles: string[] } }
   ): Promise<User> {
-    return this.svc.getMe(data.sub, data.roles ?? []);
+    const returnData = await this.svc.getMe(data.sub, data.roles ?? []);
+    console.log(returnData);
+    return returnData;
   }
 
   @MessagePattern(AccountManagementCommands.ACC_ME_UPDATE)
+  @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
   updateMe(@Payload() { data }: { data: UpdateMe }): Promise<User> {
     return this.svc.updateMe(data);
   }

@@ -1,10 +1,12 @@
-import { Expose, Type } from 'class-transformer';
-import { LiteUserRef } from '../users/user.dto';
+import { Expose } from 'class-transformer';
 
 export class DepartmentDto {
-  @Expose() id!: string;
-  @Expose() name!: string;
-  @Expose({ groups: ['manager', 'admin'] })
-  @Type(() => LiteUserRef)
-  departmentHead?: LiteUserRef;
+  @Expose()
+  id!: string;
+
+  @Expose()
+  code!: string;
+
+  @Expose()
+  name!: string;
 }

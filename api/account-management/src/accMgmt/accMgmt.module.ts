@@ -7,7 +7,6 @@ import {
   ConfigKey,
   Department,
   LoggerModule,
-  Role,
   RpcContextInterceptor,
 } from '@slamint/core';
 
@@ -30,7 +29,7 @@ import { AccountManagementService } from './accMgmt.service';
         synchronize: true,
       }),
     }),
-    TypeOrmModule.forFeature([AppUser, Role, Department]),
+    TypeOrmModule.forFeature([AppUser, Department]),
     LoggerModule,
   ],
   controllers: [AccountManagementController],

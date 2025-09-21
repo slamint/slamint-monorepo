@@ -24,7 +24,15 @@ export class User {
   id!: string;
 
   @Expose()
+  @ApiProperty({ example: '00fe42f8-bc93-4b44-b6a4-8a7b6d9a19f3' })
+  sub!: string;
+
+  @Expose()
   @ApiProperty({ example: 'johndoe' })
+  username?: string;
+
+  @Expose()
+  @ApiProperty({ example: 'John Doe' })
   name?: string;
 
   @Expose()
@@ -32,41 +40,17 @@ export class User {
   email?: string;
 
   @Expose()
-  @ApiProperty({ example: 'johndoe' })
-  username!: string;
+  @ApiProperty({ example: '+60123456789' })
+  phone?: string;
 
   @Expose()
-  @ApiProperty({ example: '+6012481278' })
-  phone!: string;
-
-  @Expose()
-  @ApiProperty({ example: Date.now() })
-  createdAt!: string;
-
-  @Expose()
-  @ApiProperty({ example: Date.now() })
-  updatedAt!: string;
-
-  @Expose()
-  @ApiProperty({ example: Date.now() })
-  lastLoginAt!: string;
-
-  @Expose()
-  @ApiProperty({ example: RoleName.engineer })
-  roles?: string[];
+  @ApiProperty({ enum: RoleName, example: RoleName.engineer })
+  role!: RoleName;
 
   @Expose({ groups: ['manager', 'engineer', 'admin'] })
   @ApiProperty({
-    example: {
-      id: randomUUID(),
-      name: 'IT',
-      email: 'it@example.com',
-      departmentHead: {
-        id: randomUUID(),
-        name: 'michael',
-        email: 'michael@example.com',
-      },
-    },
+    example: { id: randomUUID(), code: 'ENG', name: 'Engineering' },
+    required: false,
   })
   @Type(() => DepartmentDto)
   department?: DepartmentDto;
@@ -75,10 +59,31 @@ export class User {
   @ApiProperty({
     example: {
       id: randomUUID(),
-      name: 'michael',
-      email: 'michael@example.com',
+      name: 'Michael Scott',
+      email: 'michael@dundermifflin.com',
     },
+    required: false,
   })
   @Type(() => LiteUserRef)
   reportingManager?: LiteUserRef;
+
+  @Expose()
+  @ApiProperty({ example: 'active', enum: ['active', 'locked'] })
+  status!: 'active' | 'locked';
+
+  @Expose()
+  @ApiProperty({ example: new Date().toISOString() })
+  createdAt!: Date;
+
+  @Expose()
+  @ApiProperty({ example: new Date().toISOString() })
+  updatedAt!: Date;
+
+  @Expose()
+  @ApiProperty({ example: new Date().toISOString(), required: false })
+  firstLoginAt?: Date;
+
+  @Expose()
+  @ApiProperty({ example: new Date().toISOString(), required: false })
+  lastLoginAt?: Date;
 }

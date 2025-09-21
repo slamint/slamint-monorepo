@@ -9,7 +9,6 @@ export enum RoleName {
   user = 'user',
   manager = 'manager',
   engineer = 'engineer',
-  deptHead = 'department-head',
 }
 
 export const Public = (): MethodDecorator & ClassDecorator =>

@@ -3,14 +3,18 @@ import {
   CreateDateColumn,
   Entity,
   Index,
-  JoinTable,
-  ManyToMany,
+  JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { RoleName } from '../../decorators/roles.decorator';
 import { Department } from '../department/department.entity';
-import { Role } from './roles.entity';
+
+export enum AccountStatus {
+  LOCKED = 'locked',
+  ACTIVE = 'active',
+}
 
 @Entity('users')
 export class AppUser {
@@ -33,19 +37,19 @@ export class AppUser {
   @Column({ type: 'text', nullable: true })
   phone?: string;
 
-  @ManyToMany(() => Role, { eager: false })
-  @JoinTable({
-    name: 'user_roles',
-    joinColumn: { name: 'usersId', referencedColumnName: 'id' },
-    inverseJoinColumn: { name: 'rolesId', referencedColumnName: 'id' },
-  })
-  roles!: Role[];
+  @Column({ type: 'enum', enum: RoleName, default: RoleName.user })
+  role!: RoleName;
 
-  @ManyToOne(() => Department, { nullable: true, eager: false })
-  department?: Department;
+  @ManyToOne(() => AppUser, { nullable: true })
+  @JoinColumn({ name: 'manager_id' })
+  reportingManager?: AppUser | null;
 
-  @ManyToOne(() => AppUser, { nullable: true, eager: false })
-  reportingManager?: AppUser;
+  @ManyToOne(() => Department, { nullable: true })
+  @JoinColumn({ name: 'department_id' })
+  department?: Department | null;
+
+  @Column({ type: 'enum', enum: AccountStatus, default: AccountStatus.ACTIVE })
+  status!: AccountStatus;
 
   @Column({ type: 'timestamptz', nullable: true, name: 'first_login_at' })
   firstLoginAt?: Date;
