@@ -13,6 +13,8 @@ export interface KcJwtPayload {
   name?: string;
   iss: string;
   aud?: string | string[];
+  azp?: string; // authorized party / current client
+  clientId?: string; // sometimes used by adapters
 }
 
 export function extractRoles(
@@ -40,4 +42,5 @@ export function extractRoles(
 export interface JwtUser extends KcJwtPayload {
   roles: string[];
   email_verified?: boolean;
+  priorityRole?: string;
 }

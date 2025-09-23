@@ -1,6 +1,6 @@
-import { Body, Controller, Inject, Param, Req } from '@nestjs/common';
+import { Body, Controller, Inject, Req } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
-import { ApiBody, ApiParam, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiTags } from '@nestjs/swagger';
 import { catchError } from 'rxjs/operators';
 
 import type { JwtUser } from '@slamint/auth/lib/keycloak';
@@ -12,8 +12,6 @@ import {
   Controllers,
   mapRpcToHttp,
   MICRO_SERVICES,
-  RoleName,
-  RolesRoute,
   UpdateMe,
   User,
   withCtx,
@@ -50,31 +48,5 @@ export class AccMgmtController {
         .send(AccountManagementCommands.ACC_ME_UPDATE, withCtx(data))
         .pipe(catchError(mapRpcToHttp))
     );
-  }
-
-  @RolesRoute('GET', AccountManagementEndPoints.LIST_USERS, RoleName.admin, {
-    model: [User],
-  })
-  listUsers() {
-    return firstValueFrom(
-      this.accMgmt
-        .send(AccountManagementCommands.ACC_LIST_USERS, withCtx({}))
-        .pipe(catchError(mapRpcToHttp))
-    );
-  }
-
-  @RolesRoute(
-    'GET',
-    AccountManagementEndPoints.GET_USER_BY_ID,
-    RoleName.admin,
-    {
-      model: User,
-    }
-  )
-  @ApiParam({ name: 'id', type: String })
-  getByUserID(@Param('id') id: string) {
-    return this.accMgmt
-      .send(AccountManagementCommands.ACC_GET_USER_BY_ID, withCtx({ id }))
-      .pipe(catchError(mapRpcToHttp));
   }
 }

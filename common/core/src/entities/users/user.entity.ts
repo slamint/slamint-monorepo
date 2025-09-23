@@ -62,4 +62,7 @@ export class AppUser {
 
   @UpdateDateColumn({ type: 'timestamptz', name: 'updated_at' })
   updatedAt!: Date;
+
+  @Column({ type: 'text', nullable: true, name: 'locked_reason' })
+  lockedReason!: string;
 }

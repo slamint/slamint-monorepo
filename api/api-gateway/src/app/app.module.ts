@@ -21,6 +21,8 @@ import {
 import { join } from 'path';
 import { AppController } from './app.controller';
 import { AccMgmtController } from './controllers';
+import { AccMgmtControllerPrivileged } from './controllers/accMgmtPrivileged.controller';
+import { DepartmentController } from './controllers/department.controller';
 @Module({
   imports: [
     ServeStaticModule.forRoot({
@@ -46,7 +48,12 @@ import { AccMgmtController } from './controllers';
     AuthModule,
     LoggerModule,
   ],
-  controllers: [AppController, AccMgmtController],
+  controllers: [
+    AppController,
+    AccMgmtController,
+    AccMgmtControllerPrivileged,
+    DepartmentController,
+  ],
   providers: [
     { provide: APP_INTERCEPTOR, useClass: LoggingInterceptor },
     { provide: APP_INTERCEPTOR, useClass: FirstTimeUserInterceptor },

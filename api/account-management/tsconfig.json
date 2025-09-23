@@ -4,6 +4,9 @@
   "include": [],
   "references": [
     {
+      "path": "../../common/auth"
+    },
+    {
       "path": "../../common/core"
     },
     {

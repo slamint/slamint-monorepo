@@ -12,6 +12,8 @@ import {
 
 import { AccountManagementController } from './accMgmt.controller';
 import { AccountManagementService } from './accMgmt.service';
+import { DepartmentControler } from './department.controller';
+import { DepartmentService } from './department.service';
 
 @Module({
   imports: [
@@ -32,7 +34,11 @@ import { AccountManagementService } from './accMgmt.service';
     TypeOrmModule.forFeature([AppUser, Department]),
     LoggerModule,
   ],
-  controllers: [AccountManagementController],
-  providers: [AccountManagementService, RpcContextInterceptor],
+  controllers: [AccountManagementController, DepartmentControler],
+  providers: [
+    AccountManagementService,
+    DepartmentService,
+    RpcContextInterceptor,
+  ],
 })
 export class AccountManagement {}

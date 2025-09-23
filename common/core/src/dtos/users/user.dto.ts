@@ -2,6 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Expose, Type } from 'class-transformer';
 import { randomUUID } from 'crypto';
 import { RoleName } from '../../decorators/roles.decorator';
+import { AccountStatus } from '../../entities/users/user.entity';
 import { DepartmentDto } from '../department/department.dto';
 
 export class LiteUserRef {
@@ -22,10 +23,6 @@ export class User {
   @Expose()
   @ApiProperty({ example: randomUUID() })
   id!: string;
-
-  @Expose()
-  @ApiProperty({ example: '00fe42f8-bc93-4b44-b6a4-8a7b6d9a19f3' })
-  sub!: string;
 
   @Expose()
   @ApiProperty({ example: 'johndoe' })
@@ -68,8 +65,12 @@ export class User {
   reportingManager?: LiteUserRef | null;
 
   @Expose()
-  @ApiProperty({ example: 'active', enum: ['active', 'locked'] })
-  status!: 'active' | 'locked';
+  @ApiProperty({
+    example: AccountStatus.ACTIVE,
+    enum: AccountStatus,
+    default: AccountStatus.ACTIVE,
+  })
+  status!: AccountStatus;
 
   @Expose()
   @ApiProperty({ example: new Date().toISOString() })
@@ -86,4 +87,6 @@ export class User {
   @Expose()
   @ApiProperty({ example: new Date().toISOString(), required: false })
   lastLoginAt?: Date;
+
+  reason!: string;
 }

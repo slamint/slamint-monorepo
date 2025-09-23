@@ -8,7 +8,8 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
-import { META_AUTH, META_PUBLIC, META_ROLES } from '@slamint/core';
+import { META_AUTH, META_PUBLIC, META_ROLES, RoleName } from '@slamint/core';
+import { collectUserRoles } from './jwt.utils';
 import { JwtUser } from './keycloak';
 
 @Injectable()
@@ -29,40 +30,40 @@ export class JwtAuthGuard extends AuthGuard('jwt') implements CanActivate {
       handler,
       klass,
     ]);
-    const requiredRoles = this.reflector.getAllAndOverride<string[]>(
+    const required = this.reflector.getAllAndOverride<ReadonlyArray<RoleName>>(
       META_ROLES,
       [handler, klass]
     );
 
-    const mustAuthenticate = Boolean(
-      isAuth || (requiredRoles && requiredRoles.length > 0)
-    );
-    if (isPublic && !mustAuthenticate) return true;
+    const mustAuth = Boolean(isAuth || (required && required.length > 0));
+    if (isPublic && !mustAuth) return true;
     return super.canActivate(ctx);
   }
 
   override handleRequest<TUser = JwtUser>(
-    err: unknown,
-    user: TUser | false | null,
-    _info: unknown,
-    ctx: ExecutionContext
+    err: any,
+    user: any,
+    _info: any,
+    context: ExecutionContext,
+    _status?: any
   ): TUser {
     if (err) throw err;
     if (!user) throw new UnauthorizedException();
 
-    const handler = ctx.getHandler();
-    const klass = ctx.getClass();
-    const requiredRoles = this.reflector.getAllAndOverride<string[]>(
+    const handler = context.getHandler();
+    const klass = context.getClass();
+    const required = this.reflector.getAllAndOverride<ReadonlyArray<RoleName>>(
       META_ROLES,
       [handler, klass]
     );
 
-    if (!requiredRoles?.length) return user;
+    if (!required?.length) return user as TUser;
 
-    const cast = user as unknown as JwtUser;
-    const userRoles = new Set((cast.roles ?? []).map((r) => r.toLowerCase()));
-    const allowed = requiredRoles.some((r) => userRoles.has(r.toLowerCase()));
+    const cast = user as JwtUser;
+    const userRoles = collectUserRoles(cast);
+    const allowed = required.some((r) => userRoles.has(r));
     if (!allowed) throw new ForbiddenException();
-    return user;
+
+    return user as TUser;
   }
 }

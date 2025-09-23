@@ -25,7 +25,6 @@ export class RequestIdMiddleware implements NestMiddleware {
     const { traceId, spanId } = parseTraceparent(
       req.headers['traceparent'] as string | undefined
     );
-
     const store = {
       requestId: incomingReqId,
       traceId,

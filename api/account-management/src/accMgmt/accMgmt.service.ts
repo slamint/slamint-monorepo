@@ -1,14 +1,33 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { JwtUser } from '@slamint/auth';
 import type {
   EnsureFromJwtMsg,
   EnsureFromJwtResult,
+  ListUsersQueryDto,
   UpdateMe,
+  UsersDto,
 } from '@slamint/core';
-import { AppUser, RoleName, RPCCode, rpcErr, User } from '@slamint/core';
+import {
+  AppUser,
+  Department,
+  RoleName,
+  RPCCode,
+  rpcErr,
+  User,
+} from '@slamint/core';
+import { AccountStatus } from '@slamint/core/entities/users/user.entity';
 import { plainToInstance } from 'class-transformer';
 import { isUUID } from 'class-validator';
-import { FindOptionsSelect, FindOptionsWhere, Repository } from 'typeorm';
+import {
+  Between,
+  FindOptionsSelect,
+  FindOptionsWhere,
+  ILike,
+  LessThanOrEqual,
+  MoreThanOrEqual,
+  Repository,
+} from 'typeorm';
 
 // Single-role priority from token
 const ROLE_PRIORITY: RoleName[] = [
@@ -56,7 +75,9 @@ const userViewSelect: FindOptionsSelect<AppUser> = {
 @Injectable()
 export class AccountManagementService {
   constructor(
-    @InjectRepository(AppUser) private readonly users: Repository<AppUser>
+    @InjectRepository(AppUser) private readonly users: Repository<AppUser>,
+    @InjectRepository(Department)
+    private readonly department: Repository<Department>
   ) {}
 
   private async loadUserOrThrow(where: FindOptionsWhere<AppUser>) {
@@ -178,27 +199,109 @@ export class AccountManagementService {
     };
   }
 
-  async getAllUsers(): Promise<User[]> {
-    const users = await this.users.find({
-      relations: userViewRelations,
+  async getAllUsers(
+    data: JwtUser,
+    query: ListUsersQueryDto
+  ): Promise<UsersDto> {
+    if (!data || !data.sub) {
+      throw rpcErr({
+        code: RPCCode.BAD_REQUEST,
+        message: 'Request User is not valid',
+      });
+    }
+
+    const currentUser = await this.users.findOne({ where: { sub: data.sub } });
+
+    if (!currentUser) {
+      throw rpcErr({
+        code: RPCCode.BAD_REQUEST,
+        message: 'Request User is not valid',
+      });
+    }
+
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 20;
+    const sort = query.sort ?? 'createdAt';
+    const order = query.order ?? 'DESC';
+
+    const base: FindOptionsWhere<AppUser> = {
+      ...(query.role && { role: query.role }),
+      ...(query.status && { status: query.status }),
+      ...(query.departmentId && { department: { id: query.departmentId } }),
+      ...(query.managerId && { reportingManager: { id: query.managerId } }),
+    };
+
+    const toDate = (s?: string) => (s ? new Date(s) : undefined);
+
+    const cf = toDate(query.createdFrom);
+    const ct = toDate(query.createdTo);
+    if (cf && ct) base.createdAt = Between(cf, ct);
+    else if (cf) base.createdAt = MoreThanOrEqual(cf);
+    else if (ct) base.createdAt = LessThanOrEqual(ct);
+
+    const llf = toDate(query.lastLoginFrom);
+    const llt = toDate(query.lastLoginTo);
+    if (llf && llt) base.lastLoginAt = Between(llf, llt);
+    else if (llf) base.lastLoginAt = MoreThanOrEqual(llf);
+    else if (llt) base.lastLoginAt = LessThanOrEqual(llt);
+
+    let where: FindOptionsWhere<AppUser> | FindOptionsWhere<AppUser>[] = base;
+    if (query.q?.trim()) {
+      const term = ILike(`%${query.q.trim()}%`);
+      where = [
+        { ...base, name: term },
+        { ...base, username: term },
+        { ...base, email: term },
+        { ...base, phone: term },
+      ];
+    }
+    const [rows, total] = await this.users.findAndCount({
+      where,
+      relations: { department: true, reportingManager: true },
       select: userViewSelect,
-      order: { createdAt: 'DESC' },
+      order: { [sort]: order, id: 'ASC' },
+      skip: (page - 1) * limit,
+      take: limit,
     });
-    return plainToInstance(User, users, {
+
+    const items = plainToInstance(User, rows, {
       excludeExtraneousValues: true,
       enableImplicitConversion: true,
     });
+
+    return { items, total, page, limit };
   }
 
-  async getUserById(id: string): Promise<User> {
+  async getUserById(id: string, data: JwtUser): Promise<User> {
     if (!id || !isUUID(id)) {
       throw rpcErr({
         code: RPCCode.BAD_REQUEST,
         message: 'User id is not valid',
       });
     }
+    if (!data || !data.sub) {
+      throw rpcErr({
+        code: RPCCode.BAD_REQUEST,
+        message: 'Request User is not valid',
+      });
+    }
+    const currentUser = await this.users.findOne({ where: { sub: data.sub } });
+    if (!currentUser) {
+      throw rpcErr({
+        code: RPCCode.BAD_REQUEST,
+        message: 'Request User is not valid',
+      });
+    }
+
     const user = await this.users.findOne({
-      where: { id },
+      where: {
+        id,
+        ...(currentUser.role === RoleName.manager && {
+          reportingManager: { id: currentUser.id },
+          role: RoleName.engineer,
+          status: AccountStatus.ACTIVE,
+        }),
+      },
       relations: userViewRelations,
       select: userViewSelect,
     });
@@ -245,6 +348,93 @@ export class AccountManagementService {
         });
 
     this.applyPatch(user, patch);
+    const updated = await this.users.save(user);
+    return this.toUserDTO(updated, user.role);
+  }
+
+  async changeStatus(
+    id: string,
+    status: AccountStatus,
+    lockedReason: string
+  ): Promise<User> {
+    if (!id) {
+      throw rpcErr({
+        code: RPCCode.BAD_REQUEST,
+        message: 'User id is not valid',
+      });
+    }
+
+    const user = await this.loadUserOrThrow({ id });
+
+    this.applyPatch(user, {
+      status,
+      lockedReason: status === AccountStatus.LOCKED ? lockedReason ?? '' : '',
+    });
+    const updated = await this.users.save(user);
+    return this.toUserDTO(updated, user.role);
+  }
+
+  async updateDepartment(id: string, deptId: string): Promise<User> {
+    if (!id) {
+      throw rpcErr({
+        code: RPCCode.BAD_REQUEST,
+        message: 'User id is not valid',
+      });
+    }
+
+    if (!deptId) {
+      throw rpcErr({
+        code: RPCCode.BAD_REQUEST,
+        message: 'Department id is not valid',
+      });
+    }
+    const dept = await this.department.findOne({ where: { id: deptId } });
+
+    if (!dept) {
+      throw rpcErr({
+        code: RPCCode.BAD_REQUEST,
+        message: 'Department id is not valid',
+      });
+    }
+    const user = await this.loadUserOrThrow({ id });
+
+    this.applyPatch(user, {
+      department: dept,
+    });
+
+    const updated = await this.users.save(user);
+    return this.toUserDTO(updated, user.role);
+  }
+
+  async updateManager(id: string, managerId: string): Promise<User> {
+    if (!id) {
+      throw rpcErr({
+        code: RPCCode.BAD_REQUEST,
+        message: 'User id is not valid',
+      });
+    }
+
+    if (!managerId) {
+      throw rpcErr({
+        code: RPCCode.BAD_REQUEST,
+        message: 'Manager id is not valid',
+      });
+    }
+    const manager = await this.loadUserOrThrow({ id: managerId });
+
+    if (!manager) {
+      throw rpcErr({
+        code: RPCCode.BAD_REQUEST,
+        message: 'Manager id is not valid',
+      });
+    }
+    const user = await this.loadUserOrThrow({ id });
+
+    this.applyPatch(user, {
+      reportingManager: manager,
+      department: manager.department,
+    });
+
     const updated = await this.users.save(user);
     return this.toUserDTO(updated, user.role);
   }

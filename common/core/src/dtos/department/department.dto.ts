@@ -9,4 +9,10 @@ export class DepartmentDto {
 
   @Expose()
   name!: string;
+
+  @Expose()
+  createdAt!: Date;
+
+  @Expose()
+  updatedAt!: Date;
 }

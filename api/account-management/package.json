@@ -78,6 +78,7 @@
     }
   },
   "devDependencies": {
-    "@slamint/core": "workspace:*"
+    "@slamint/core": "workspace:*",
+    "@slamint/auth": "workspace:*"
   }
 }

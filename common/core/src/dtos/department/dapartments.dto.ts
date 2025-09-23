@@ -1,12 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose, Type } from 'class-transformer';
-import { User } from './user.dto';
+import { DepartmentDto } from './department.dto';
 
-export class UsersDto {
+export class DepartmentsDto {
   @Expose()
-  @ApiProperty({ type: User, isArray: true })
-  @Type(() => User)
-  items!: User[];
+  @ApiProperty({ type: DepartmentDto, isArray: true })
+  @Type(() => DepartmentDto)
+  items!: DepartmentDto[];
 
   @Expose()
   @ApiProperty({ type: Number, example: 42 })
