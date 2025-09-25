@@ -1,0 +1,16 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "files": [],
+  "include": [],
+  "references": [
+    {
+      "path": "../../common/auth"
+    },
+    {
+      "path": "../../common/core"
+    },
+    {
+      "path": "./tsconfig.app.json"
+    }
+  ]
+}

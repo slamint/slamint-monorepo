@@ -26,10 +26,10 @@ fi
 
 case "$TYPE" in
   lib)
-    CMD=(pnpm nx g @nx/js:library "common/${NAME}" --bundler=tsc --linter=eslint --projectNameAndRootFormat=as-provided --projectConfig=project --publishable=true)
+    CMD=(pnpm nx g @nx/js:library "common/${NAME}")
     ;;
   api)
-    CMD=(pnpm nx g @nx/nest:application "api/${NAME}" --projectNameAndRootFormat=as-provided --projectConfig=project --publishable=true)
+    CMD=(pnpm nx g @nx/nest:application "api/${NAME}")
     ;;
   *)
     echo "Unknown type: $TYPE (expected lib or api)"

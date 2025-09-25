@@ -1,1 +1,2 @@
-export * from './user.command';
+export { AccountManagementCommands } from './accountmanagement.command';
+export { DepartmentCommands } from './department.command';

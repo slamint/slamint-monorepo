@@ -1,19 +1,25 @@
-// auth/authz.guard.ts
 import {
   CanActivate,
   ExecutionContext,
+  HttpException,
+  HttpStatus,
   Injectable,
-  UnauthorizedException,
-  ForbiddenException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
-import { META_PUBLIC, META_AUTH, META_ROLES } from './roles.decorator';
+import {
+  META_AUTH,
+  META_PUBLIC,
+  META_ROLES,
+  RoleName,
+  serverError,
+  ServerErrorMessage,
+} from '@slamint/core';
+import { collectUserRoles } from './jwt.utils';
+import { JwtUser } from './keycloak';
 
-export interface JwtUser {
-  sub: string;
-  email: string;
-  roles: string[];
+function httpErr(status: number, errorType: string, errorMessage: string) {
+  return new HttpException({ errorType, errorMessage }, status);
 }
 
 @Injectable()
@@ -34,45 +40,59 @@ export class JwtAuthGuard extends AuthGuard('jwt') implements CanActivate {
       handler,
       klass,
     ]);
-    const requiredRoles = this.reflector.getAllAndOverride<string[]>(
+    const required = this.reflector.getAllAndOverride<ReadonlyArray<RoleName>>(
       META_ROLES,
       [handler, klass]
     );
 
-    // If explicitly Authenticated or Roles present, force auth path
-    const mustAuthenticate = Boolean(
-      isAuth || (requiredRoles && requiredRoles.length > 0)
-    );
+    const mustAuth = Boolean(isAuth || (required && required.length > 0));
+    if (isPublic && !mustAuth) return true;
 
-    // Public only if marked @Public AND not explicitly @Authenticated
-    if (isPublic && !mustAuthenticate) return true;
-
-    // Otherwise require JWT (private-by-default)
     return super.canActivate(ctx);
   }
 
   override handleRequest<TUser = JwtUser>(
-    err: unknown,
-    user: TUser | false | null,
-    _info: unknown,
-    ctx: ExecutionContext
+    err: any,
+    user: any,
+    _info: any,
+    context: ExecutionContext
   ): TUser {
-    if (err) throw err;
-    if (!user) throw new UnauthorizedException();
+    if (err) {
+      throw httpErr(
+        HttpStatus.UNAUTHORIZED,
+        serverError.UNAUTHORIZED,
+        ServerErrorMessage.UNAUTHORIZED
+      );
+    }
 
-    const handler = ctx.getHandler();
-    const klass = ctx.getClass();
-    const requiredRoles = this.reflector.getAllAndOverride<string[]>(
+    if (!user) {
+      throw httpErr(
+        HttpStatus.UNAUTHORIZED,
+        serverError.UNAUTHORIZED,
+        ServerErrorMessage.UNAUTHORIZED
+      );
+    }
+
+    const handler = context.getHandler();
+    const klass = context.getClass();
+    const required = this.reflector.getAllAndOverride<ReadonlyArray<RoleName>>(
       META_ROLES,
       [handler, klass]
     );
 
-    if (!requiredRoles?.length) return user;
+    if (!required?.length) return user as TUser;
 
-    const cast = user as unknown as JwtUser;
-    const userRoles = new Set((cast.roles ?? []).map((r) => r.toLowerCase()));
-    const allowed = requiredRoles.some((r) => userRoles.has(r.toLowerCase()));
-    if (!allowed) throw new ForbiddenException();
-    return user;
+    const cast = user as JwtUser;
+    const roles = collectUserRoles(cast);
+    const allowed = required.some((r) => roles.has(r));
+    if (!allowed) {
+      throw httpErr(
+        HttpStatus.FORBIDDEN,
+        serverError.FORBIDDEN,
+        ServerErrorMessage.FORBIDDEN
+      );
+    }
+
+    return user as TUser;
   }
 }

@@ -1,1 +1,1 @@
-export { UsersGatewayController } from './users.controller';
+export { AccMgmtController } from './accMgmt.controller';

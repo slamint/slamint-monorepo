@@ -1,4 +1,3 @@
-// common/core/src/config/config.schema.ts
 import { z } from 'zod';
 import { ConfigKey } from './config.key';
 
@@ -14,12 +13,19 @@ export const configSchema = z.object({
   [ConfigKey.DB_NAME]: z.string(),
 
   [ConfigKey.KEYCLOAK_REALM]: z.string(),
-  [ConfigKey.KEYCLOAK_AUTH_SERVER_URL]: z.string().url(),
+  [ConfigKey.KEYCLOAK_SERVER_URL]: z.string().url(),
   [ConfigKey.KEYCLOAK_CLIENT_ID]: z.string(),
   [ConfigKey.KEYCLOAK_CLIENT_SECRET]: z.string(),
+  [ConfigKey.OIDC_ISSUER]: z.string(),
+  [ConfigKey.OIDC_CLIENT]: z.string(),
+  [ConfigKey.OIDC_SVC_CLIENT]: z.string(),
+  [ConfigKey.OIDC_SVC_CLIENT_SECRET]: z.string(),
 
-  [ConfigKey.USER_MS_HOST]: z.string(),
-  [ConfigKey.USER_MS_PORT]: z.string().default('8082'),
+  [ConfigKey.GATEWAY_HOST]: z.string(),
+  [ConfigKey.GATEWAY_PORT]: z.string().default('8081'),
+
+  [ConfigKey.ACCMGMT_MS_HOST]: z.string(),
+  [ConfigKey.ACCMGMT_MS_PORT]: z.string().default('8082'),
 });
 
 export type AppConfig = z.infer<typeof configSchema>;

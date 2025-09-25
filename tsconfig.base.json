@@ -18,6 +18,8 @@
     "skipLibCheck": true,
     "strict": true,
     "target": "es2022",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
     "customConditions": ["@slamint/source"],
     "paths": {
       "@slamint/auth": ["common/auth/src/index.ts"],
