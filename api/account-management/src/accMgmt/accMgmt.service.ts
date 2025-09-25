@@ -4,6 +4,7 @@ import { JwtUser } from '@slamint/auth';
 import type {
   EnsureFromJwtMsg,
   EnsureFromJwtResult,
+  InviteUser,
   ListUsersQueryDto,
   UpdateMe,
   UsersDto,
@@ -31,6 +32,7 @@ import {
   MoreThanOrEqual,
   Repository,
 } from 'typeorm';
+import { KCUser } from './../../../../common/auth/src/lib/keycloak.d';
 import { KeycloakService } from './keycloak.service';
 
 // Single-role priority from token
@@ -208,6 +210,52 @@ export class AccountManagementService {
     };
   }
 
+  async inviteUser(data: InviteUser): Promise<User> {
+    console.log(data);
+    const user: KCUser = await this.kcService.inviteUser(data);
+    const name =
+      [user.firstName, user.lastName].filter(Boolean).join(' ') ||
+      user.username;
+    await this.users
+      .createQueryBuilder()
+      .insert()
+      .values({
+        sub: user.id,
+        email: user.email ?? undefined,
+        name: name ?? undefined,
+        username: user.username ?? undefined,
+        role: data.role,
+      })
+      .orIgnore()
+      .execute();
+
+    await this.users
+      .createQueryBuilder()
+      .update()
+      .set({
+        firstLoginAt: () => `COALESCE("first_login_at", NOW())`,
+        lastLoginAt: () => `NOW()`,
+        name: () => `CASE WHEN "name" IS NULL THEN :name ELSE "name" END`,
+        email: () => `CASE WHEN "email" IS NULL THEN :email ELSE "email" END`,
+        username: () =>
+          `CASE WHEN "username" IS NULL THEN :username ELSE "username" END`,
+      })
+      .where('sub = :sub', { sub: user.id })
+      .setParameters({
+        name: name ?? null,
+        email: user.email ?? null,
+        username: user.username ?? null,
+      })
+      .execute();
+
+    const insertedUser = await this.users.findOne({
+      where: { sub: user.id },
+    });
+    return plainToInstance(User, insertedUser, {
+      excludeExtraneousValues: true,
+      enableImplicitConversion: true,
+    });
+  }
   async getAllUsers(
     data: JwtUser,
     query: ListUsersQueryDto

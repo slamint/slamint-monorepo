@@ -8,4 +8,5 @@ export enum AccountManagementCommands {
   ACC_CHANGE_MANAGER_USER_BY_ID = 'acc:users:id:manager',
   ACC_CHANGE_ROLE_USER_BY_ID = 'acc:users:id:changerole',
   ACC_ENSURE_FROM_JWT = 'acc:user:from:jwt',
+  ACC_INVITE_USER = 'acc:user:invite',
 }

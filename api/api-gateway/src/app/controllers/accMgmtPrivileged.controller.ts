@@ -8,6 +8,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { catchError } from 'rxjs/operators';
+import { InviteUser } from './../../../../../common/core/src/dtos/users/admin/inviteUser.dto';
 
 import type { JwtUser } from '@slamint/auth';
 import { CurrentUser } from '@slamint/auth';
@@ -40,6 +41,25 @@ export class AccMgmtControllerPrivileged {
     @Inject(MICRO_SERVICES.ACCOUNT_MANAGEMENT)
     private readonly accMgmt: ClientProxy
   ) {}
+
+  @ApiOperation({
+    summary: 'invite new user',
+    description: `Invite New User for **admin** only`,
+  })
+  @RolesRoute(
+    'POST',
+    AccountManagementEndPoints.INVITE_USERS,
+    [RoleName.admin],
+    {
+      model: User,
+    }
+  )
+  @ApiBody({ type: InviteUser })
+  inviteUser(@Body() data: InviteUser) {
+    return this.accMgmt
+      .send(AccountManagementCommands.ACC_INVITE_USER, withCtx({ user: data }))
+      .pipe(catchError(mapRpcToHttp));
+  }
 
   @ApiExtraModels(UsersDto, User, ListUsersQueryDto)
   @RolesRoute(

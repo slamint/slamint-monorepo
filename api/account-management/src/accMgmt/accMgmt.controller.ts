@@ -5,6 +5,7 @@ import { JwtUser } from '@slamint/auth';
 import type {
   EnsureFromJwtMsg,
   EnsureFromJwtResult,
+  InviteUser,
   ListUsersQueryDto,
   RoleName,
   UsersDto,
@@ -86,5 +87,13 @@ export class AccountManagementController {
     { data }: { data: { id: string; role: RoleName } }
   ): Promise<User> {
     return this.svc.changeRole(data.id, data.role);
+  }
+
+  @MessagePattern(AccountManagementCommands.ACC_INVITE_USER)
+  inviteUser(
+    @Payload()
+    { data }: { data: { user: InviteUser } }
+  ): Promise<User> {
+    return this.svc.inviteUser(data.user);
   }
 }

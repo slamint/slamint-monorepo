@@ -6,6 +6,7 @@ export enum HealthEndPoints {
 export enum AccountManagementEndPoints {
   ME = 'me',
   LIST_USERS = 'users',
+  INVITE_USERS = 'users/invite',
   GET_USER_BY_ID = 'users/:id',
   CHANGE_STATUS_USER_BY_ID = 'users/:id/change-status',
   UPDATE_DEPARTMENT_USER_BY_ID = 'users/:id/update-department',

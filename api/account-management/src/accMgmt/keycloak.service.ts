@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import axios, { AxiosError, AxiosRequestConfig, Method } from 'axios';
 
 import type { KCRealmRole, KCUser } from '@slamint/auth';
-import type { LoggerLike } from '@slamint/core';
+import type { InviteUser, LoggerLike } from '@slamint/core';
 import {
   ConfigKey,
   getRequestContext,
@@ -132,6 +132,97 @@ export class KeycloakService {
       );
       return out.access_token;
     } catch {
+      throw rpcErr({
+        type: RPCCode.INTERNAL_SERVER_ERROR,
+        code: serverError.INTERNAL_SERVER_ERROR,
+        message: ServerErrorMessage.INTERNAL_SERVER_ERROR,
+      });
+    }
+  }
+
+  async inviteUser(data: InviteUser): Promise<KCUser> {
+    try {
+      const token = await this.getAdminToken();
+
+      const res = await this.kcRequest('POST', this.admin('/users'), {
+        headers: { Authorization: `Bearer ${token}` },
+        data: {
+          username: `${data.firstName} ${data.lastName}`
+            .replaceAll(' ', '_')
+            .toLowerCase(),
+          firstName: data.firstName,
+          lastName: data.lastName,
+          email: data.email,
+          enabled: true,
+        },
+      });
+
+      if (!res?.headers) {
+        throw rpcErr({
+          type: RPCCode.INTERNAL_SERVER_ERROR,
+          code: serverError.INTERNAL_SERVER_ERROR,
+          message: ServerErrorMessage.INTERNAL_SERVER_ERROR,
+        });
+      }
+      const id = res.headers.location.toString().split('/').pop();
+      if (!id) {
+        throw rpcErr({
+          type: RPCCode.INTERNAL_SERVER_ERROR,
+          code: serverError.INTERNAL_SERVER_ERROR,
+          message: ServerErrorMessage.INTERNAL_SERVER_ERROR,
+        });
+      }
+
+      const user = await this.kcRequest<KCUser>(
+        'GET',
+        this.admin(`/users/${id}`),
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      if (!user) {
+        throw rpcErr({
+          type: RPCCode.INTERNAL_SERVER_ERROR,
+          code: serverError.INTERNAL_SERVER_ERROR,
+          message: ServerErrorMessage.INTERNAL_SERVER_ERROR,
+        });
+      }
+
+      const triggerEmail = await this.kcRequest(
+        'PUT',
+        this.admin(`/users/${id}/execute-actions-email`),
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          data: ['VERIFY_EMAIL', 'UPDATE_PASSWORD'],
+        }
+      );
+
+      if (!triggerEmail) {
+        throw rpcErr({
+          type: RPCCode.INTERNAL_SERVER_ERROR,
+          code: serverError.INTERNAL_SERVER_ERROR,
+          message: ServerErrorMessage.INTERNAL_SERVER_ERROR,
+        });
+      }
+
+      // Assign Roles
+      const { data: availableRoles } = await this.kcRequest<KCRealmRole[]>(
+        'GET',
+        this.admin(`/roles`),
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const requiredRole = availableRoles.find((r) => r.name === data.role);
+
+      await this.kcRequest(
+        'POST',
+        this.admin(`/users/${user.data.id}/role-mappings/realm`),
+        { headers: { Authorization: `Bearer ${token}` }, data: [requiredRole] }
+      );
+
+      return user.data as KCUser;
+    } catch (err) {
+      console.debug(err);
       throw rpcErr({
         type: RPCCode.INTERNAL_SERVER_ERROR,
         code: serverError.INTERNAL_SERVER_ERROR,
