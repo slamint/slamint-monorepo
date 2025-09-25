@@ -9,8 +9,11 @@ import type {
   UsersDto,
 } from '@slamint/core';
 import {
+  AccountManagementErrCodes,
+  AccountManagementErrMessage,
   AppUser,
   Department,
+  DepartmentErrCodes,
   RoleName,
   RPCCode,
   rpcErr,
@@ -28,6 +31,7 @@ import {
   MoreThanOrEqual,
   Repository,
 } from 'typeorm';
+import { KeycloakService } from './keycloak.service';
 
 // Single-role priority from token
 const ROLE_PRIORITY: RoleName[] = [
@@ -77,7 +81,8 @@ export class AccountManagementService {
   constructor(
     @InjectRepository(AppUser) private readonly users: Repository<AppUser>,
     @InjectRepository(Department)
-    private readonly department: Repository<Department>
+    private readonly department: Repository<Department>,
+    private readonly kcService: KeycloakService
   ) {}
 
   private async loadUserOrThrow(where: FindOptionsWhere<AppUser>) {
@@ -87,7 +92,11 @@ export class AccountManagementService {
       select: userViewSelect,
     });
     if (!user)
-      throw rpcErr({ code: RPCCode.NOT_FOUND, message: 'User not found' });
+      throw rpcErr({
+        type: RPCCode.NOT_FOUND,
+        code: AccountManagementErrCodes.USER_NOT_FOUND,
+        message: AccountManagementErrMessage.USER_NOT_FOUND,
+      });
     return user;
   }
 
@@ -205,8 +214,9 @@ export class AccountManagementService {
   ): Promise<UsersDto> {
     if (!data || !data.sub) {
       throw rpcErr({
-        code: RPCCode.BAD_REQUEST,
-        message: 'Request User is not valid',
+        type: RPCCode.BAD_REQUEST,
+        code: AccountManagementErrCodes.INVALID_REQUEST_USERID,
+        message: AccountManagementErrMessage.INVALID_REQUEST_USERID,
       });
     }
 
@@ -214,8 +224,9 @@ export class AccountManagementService {
 
     if (!currentUser) {
       throw rpcErr({
-        code: RPCCode.BAD_REQUEST,
-        message: 'Request User is not valid',
+        type: RPCCode.BAD_REQUEST,
+        code: AccountManagementErrCodes.INVALID_REQUEST_USERID,
+        message: AccountManagementErrMessage.INVALID_REQUEST_USERID,
       });
     }
 
@@ -275,21 +286,24 @@ export class AccountManagementService {
   async getUserById(id: string, data: JwtUser): Promise<User> {
     if (!id || !isUUID(id)) {
       throw rpcErr({
-        code: RPCCode.BAD_REQUEST,
-        message: 'User id is not valid',
+        type: RPCCode.BAD_REQUEST,
+        code: AccountManagementErrCodes.INVALID_USERID,
+        message: AccountManagementErrMessage.INVALID_USERID,
       });
     }
     if (!data || !data.sub) {
       throw rpcErr({
-        code: RPCCode.BAD_REQUEST,
-        message: 'Request User is not valid',
+        type: RPCCode.BAD_REQUEST,
+        code: AccountManagementErrCodes.INVALID_USERID,
+        message: AccountManagementErrMessage.INVALID_USERID,
       });
     }
     const currentUser = await this.users.findOne({ where: { sub: data.sub } });
     if (!currentUser) {
       throw rpcErr({
-        code: RPCCode.BAD_REQUEST,
-        message: 'Request User is not valid',
+        type: RPCCode.BAD_REQUEST,
+        code: AccountManagementErrCodes.INVALID_REQUEST_USERID,
+        message: AccountManagementErrMessage.INVALID_REQUEST_USERID,
       });
     }
 
@@ -306,7 +320,11 @@ export class AccountManagementService {
       select: userViewSelect,
     });
     if (!user) {
-      throw rpcErr({ code: RPCCode.NOT_FOUND, message: 'User not found' });
+      throw rpcErr({
+        type: RPCCode.NOT_FOUND,
+        code: AccountManagementErrCodes.USER_NOT_FOUND,
+        message: AccountManagementErrMessage.USER_NOT_FOUND,
+      });
     }
     return plainToInstance(User, user, {
       excludeExtraneousValues: true,
@@ -314,11 +332,12 @@ export class AccountManagementService {
     });
   }
 
-  async getMe(sub: string, tokenRoles?: string[]): Promise<User> {
+  async getMe(sub: string): Promise<User> {
     if (!sub) {
       throw rpcErr({
-        code: RPCCode.BAD_REQUEST,
-        message: 'User id is not valid',
+        type: RPCCode.BAD_REQUEST,
+        code: AccountManagementErrCodes.INVALID_USERID,
+        message: AccountManagementErrMessage.INVALID_USERID,
       });
     }
 
@@ -331,19 +350,20 @@ export class AccountManagementService {
     const { id, ...patch } = data;
     if (!id) {
       throw rpcErr({
-        code: RPCCode.BAD_REQUEST,
-        message: 'User id is not valid',
+        type: RPCCode.BAD_REQUEST,
+        code: AccountManagementErrCodes.INVALID_USERID,
+        message: AccountManagementErrMessage.INVALID_USERID,
       });
     }
 
     const user = await this.loadUserOrThrow({ id });
 
-    // Block privileged fields via /me
     const forbidden = ['role', 'managerId', 'departmentId', 'status'];
     for (const k of forbidden)
       if (k in patch)
         throw rpcErr({
-          code: RPCCode.BAD_REQUEST,
+          type: RPCCode.BAD_REQUEST,
+          code: AccountManagementErrCodes.INVALID_USERID,
           message: `Cannot update ${k} via /me`,
         });
 
@@ -359,8 +379,9 @@ export class AccountManagementService {
   ): Promise<User> {
     if (!id) {
       throw rpcErr({
-        code: RPCCode.BAD_REQUEST,
-        message: 'User id is not valid',
+        type: RPCCode.BAD_REQUEST,
+        code: AccountManagementErrCodes.INVALID_USERID,
+        message: AccountManagementErrMessage.INVALID_USERID,
       });
     }
 
@@ -377,23 +398,26 @@ export class AccountManagementService {
   async updateDepartment(id: string, deptId: string): Promise<User> {
     if (!id) {
       throw rpcErr({
-        code: RPCCode.BAD_REQUEST,
-        message: 'User id is not valid',
+        type: RPCCode.BAD_REQUEST,
+        code: AccountManagementErrCodes.INVALID_USERID,
+        message: AccountManagementErrMessage.INVALID_USERID,
       });
     }
 
     if (!deptId) {
       throw rpcErr({
-        code: RPCCode.BAD_REQUEST,
-        message: 'Department id is not valid',
+        type: RPCCode.BAD_REQUEST,
+        code: DepartmentErrCodes.INVALID_DEPT,
+        message: DepartmentErrCodes.INVALID_DEPT,
       });
     }
     const dept = await this.department.findOne({ where: { id: deptId } });
 
     if (!dept) {
       throw rpcErr({
-        code: RPCCode.BAD_REQUEST,
-        message: 'Department id is not valid',
+        type: RPCCode.BAD_REQUEST,
+        code: DepartmentErrCodes.DEPT_NOT_FOUND,
+        message: DepartmentErrCodes.DEPT_NOT_FOUND,
       });
     }
     const user = await this.loadUserOrThrow({ id });
@@ -409,23 +433,26 @@ export class AccountManagementService {
   async updateManager(id: string, managerId: string): Promise<User> {
     if (!id) {
       throw rpcErr({
-        code: RPCCode.BAD_REQUEST,
-        message: 'User id is not valid',
+        type: RPCCode.BAD_REQUEST,
+        code: AccountManagementErrCodes.INVALID_USERID,
+        message: AccountManagementErrMessage.INVALID_USERID,
       });
     }
 
     if (!managerId) {
       throw rpcErr({
-        code: RPCCode.BAD_REQUEST,
-        message: 'Manager id is not valid',
+        type: RPCCode.BAD_REQUEST,
+        code: AccountManagementErrCodes.INVALID_MANAGERID,
+        message: AccountManagementErrMessage.INVALID_MANAGERID,
       });
     }
     const manager = await this.loadUserOrThrow({ id: managerId });
 
     if (!manager) {
       throw rpcErr({
-        code: RPCCode.BAD_REQUEST,
-        message: 'Manager id is not valid',
+        type: RPCCode.BAD_REQUEST,
+        code: AccountManagementErrCodes.MANAGER_NOT_FOUND,
+        message: AccountManagementErrMessage.MANAGER_NOT_FOUND,
       });
     }
     const user = await this.loadUserOrThrow({ id });
@@ -433,6 +460,41 @@ export class AccountManagementService {
     this.applyPatch(user, {
       reportingManager: manager,
       department: manager.department,
+    });
+
+    const updated = await this.users.save(user);
+    return this.toUserDTO(updated, user.role);
+  }
+
+  async changeRole(id: string, role: RoleName): Promise<User> {
+    if (!id) {
+      throw rpcErr({
+        type: RPCCode.BAD_REQUEST,
+        code: AccountManagementErrCodes.INVALID_USERID,
+        message: AccountManagementErrMessage.INVALID_USERID,
+      });
+    }
+
+    const user = await this.loadUserOrThrow({ id });
+
+    if (user.role === role) {
+      throw rpcErr({
+        type: RPCCode.BAD_REQUEST,
+        code: AccountManagementErrCodes.ROLE_MUST_DIFFERENT,
+        message: AccountManagementErrMessage.ROLE_MUST_DIFFERENT,
+      });
+    }
+
+    const { roles } = await this.kcService.setRealmRoles(user.sub, role);
+    if (!roles.find((r) => role === r)) {
+      throw rpcErr({
+        type: RPCCode.BAD_REQUEST,
+        code: AccountManagementErrCodes.INVALID_USERID,
+        message: AccountManagementErrMessage.INVALID_USERID,
+      });
+    }
+    this.applyPatch(user, {
+      role,
     });
 
     const updated = await this.users.save(user);

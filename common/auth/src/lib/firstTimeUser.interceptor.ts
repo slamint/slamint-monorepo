@@ -1,6 +1,8 @@
 import {
   CallHandler,
   ExecutionContext,
+  HttpException,
+  HttpStatus,
   Inject,
   Injectable,
   NestInterceptor,
@@ -9,13 +11,17 @@ import { Reflector } from '@nestjs/core';
 import { ClientProxy } from '@nestjs/microservices';
 import {
   AccountManagementCommands,
+  mapRpcToHttp,
   META_AUTH,
   META_PUBLIC,
   META_ROLES,
   MICRO_SERVICES,
+  serverError,
+  ServerErrorMessage,
 } from '@slamint/core';
 import type { Request } from 'express';
 import { catchError, firstValueFrom, throwError } from 'rxjs';
+import { collectUserRoles } from './jwt.utils';
 import { JwtUser } from './keycloak';
 
 interface AuthedRequest extends Request {
@@ -23,27 +29,8 @@ interface AuthedRequest extends Request {
   __ensuredUser__?: boolean;
 }
 
-function extractRoles(u: JwtUser): string[] {
-  const ignore = new Set([
-    'offline_access',
-    'uma_authorization',
-    'default-roles-slamint',
-    'manage-account',
-    'manage-account-links',
-    'view-profile',
-  ]);
-  const realm = (u?.realm_access?.roles ?? []).map((r: string) =>
-    r.toLowerCase()
-  );
-  const clientId = (u as any).azp ?? (u as any).clientId;
-  const client = clientId
-    ? (u?.resource_access?.[clientId]?.roles ?? []).map((r: string) =>
-        r.toLowerCase()
-      )
-    : [];
-  return Array.from(new Set([...realm, ...client])).filter(
-    (r) => !ignore.has(r)
-  );
+function httpErr(status: number, errorType: string, errorMessage: string) {
+  return new HttpException({ errorType, errorMessage }, status);
 }
 
 @Injectable()
@@ -78,25 +65,38 @@ export class FirstTimeUserInterceptor implements NestInterceptor {
     const mustAuthenticate = isAuth || requiredRoles.length > 0;
     const shouldSkip = isPublic && !mustAuthenticate;
 
-    if (!shouldSkip && req.user && !req.__ensuredUser__) {
-      const u = req.user;
-      const roles = extractRoles(u);
+    if (!shouldSkip) {
+      if (!req.user) {
+        throw httpErr(
+          HttpStatus.UNAUTHORIZED,
+          serverError.UNAUTHORIZED,
+          ServerErrorMessage.UNAUTHORIZED
+        );
+      }
 
-      req.user.roles = roles;
+      if (!req.__ensuredUser__) {
+        const u = req.user;
 
-      await firstValueFrom(
-        this.accMgmt.send(AccountManagementCommands.ACC_ENSURE_FROM_JWT, {
-          sub: u.sub,
-          iss: u.iss,
-          email: u.email,
-          email_verified: u.email_verified,
-          name: u.name,
-          preferred_username: u.preferred_username,
-          roles,
-        } as const)
-      );
+        const roleSet = collectUserRoles(u);
+        const roles = Array.from(roleSet);
+        req.user.roles = roles;
 
-      req.__ensuredUser__ = true;
+        await firstValueFrom(
+          this.accMgmt
+            .send(AccountManagementCommands.ACC_ENSURE_FROM_JWT, {
+              sub: u.sub,
+              iss: u.iss,
+              email: u.email,
+              email_verified: (u as any).email_verified,
+              name: u.name,
+              preferred_username: (u as any).preferred_username,
+              roles,
+            } as const)
+            .pipe(catchError(mapRpcToHttp))
+        );
+
+        req.__ensuredUser__ = true;
+      }
     }
 
     const handlerName =

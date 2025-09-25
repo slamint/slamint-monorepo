@@ -35,16 +35,17 @@ export function ApiOkResponseEnvelope<T extends Type<unknown>>(
   );
 }
 
-export function ApiErrorEnvelope(statusCode: number, errorName: string) {
+export function ApiErrorEnvelope(
+  statusCode: number,
+  errorType: string,
+  exampleMessage = 'Error message'
+) {
   const example = {
     success: false,
     error: {
-      message: 'string',
-      details: {
-        message: 'string',
-        error: errorName,
-        statusCode,
-      },
+      errorCode: statusCode,
+      errorType, // e.g. "ACCOUNT_USER_ID_INVALID"
+      errorMessage: exampleMessage,
     },
     path: '/api/path',
     timestamp: '2025-09-16T02:59:58.669Z',
@@ -54,14 +55,14 @@ export function ApiErrorEnvelope(statusCode: number, errorName: string) {
     ApiExtraModels(ErrorInfoDto),
     ApiResponse({
       status: statusCode,
-      description: errorName,
+      description: errorType,
       content: {
         'application/json': {
           schema: { $ref: getSchemaPath(ErrorInfoDto) },
           example,
           examples: {
-            [`${statusCode}_${errorName.replace(/\s+/g, '_')}`]: {
-              summary: `${statusCode} ${errorName}`,
+            [`${statusCode}_${errorType}`]: {
+              summary: `${statusCode} ${errorType}`,
               value: example,
             },
           },
@@ -71,12 +72,24 @@ export function ApiErrorEnvelope(statusCode: number, errorName: string) {
   );
 }
 
-export const ApiBadRequestEnvelope = () => ApiErrorEnvelope(400, 'Bad Request');
-export const ApiUnauthorizedEnvelope = () =>
-  ApiErrorEnvelope(401, 'Unauthorized');
-export const ApiForbiddenEnvelope = () => ApiErrorEnvelope(403, 'Forbidden');
-export const ApiNotFoundEnvelope = () => ApiErrorEnvelope(404, 'Not Found');
-export const ApiServerErrorEnvelope = () =>
-  ApiErrorEnvelope(500, 'Internal Server Error');
-export const ApiServerGatewayTimeout = () =>
-  ApiErrorEnvelope(504, 'Gateway Timeout');
+/**
+ * Convenience helpers for common HTTP statuses with generic errorType.
+ * For domain-specific codes, prefer ApiErrorEnvelope(status, 'YOUR_DOMAIN_CODE', 'Your message')
+ */
+export const ApiBadRequestEnvelope = (msg = 'Bad request') =>
+  ApiErrorEnvelope(400, 'BAD_REQUEST', msg);
+
+export const ApiUnauthorizedEnvelope = (msg = 'Unauthorized') =>
+  ApiErrorEnvelope(401, 'UNAUTHORIZED', msg);
+
+export const ApiForbiddenEnvelope = (msg = 'Forbidden') =>
+  ApiErrorEnvelope(403, 'FORBIDDEN', msg);
+
+export const ApiNotFoundEnvelope = (msg = 'Not found') =>
+  ApiErrorEnvelope(404, 'NOT_FOUND', msg);
+
+export const ApiServerErrorEnvelope = (msg = 'Internal server error') =>
+  ApiErrorEnvelope(500, 'INTERNAL_SERVER_ERROR', msg);
+
+export const ApiServerGatewayTimeout = (msg = 'Gateway timeout') =>
+  ApiErrorEnvelope(504, 'GATEWAY_TIMEOUT', msg);

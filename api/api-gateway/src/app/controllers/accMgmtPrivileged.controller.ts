@@ -24,6 +24,7 @@ import {
   RolesRoute,
   UpdateDepartmentDto,
   UpdateManagerDto,
+  UpdateRoleDto,
   User,
   UsersDto,
   withCtx,
@@ -154,6 +155,29 @@ export class AccMgmtControllerPrivileged {
       .send(
         AccountManagementCommands.ACC_CHANGE_MANAGER_USER_BY_ID,
         withCtx({ id, managerId: data.managerId })
+      )
+      .pipe(catchError(mapRpcToHttp));
+  }
+
+  @ApiOperation({
+    summary: 'update role of user',
+    description: `update role by user id for **admin** only`,
+  })
+  @RolesRoute(
+    'PATCH',
+    AccountManagementEndPoints.UPDATE_ROLE_USER_BY_ID,
+    [RoleName.admin],
+    {
+      model: User,
+    }
+  )
+  @ApiParam({ name: 'id', type: String })
+  @ApiBody({ type: UpdateRoleDto })
+  changeRole(@Param('id') id: string, @Body() data: UpdateRoleDto) {
+    return this.accMgmt
+      .send(
+        AccountManagementCommands.ACC_CHANGE_ROLE_USER_BY_ID,
+        withCtx({ id, role: data.role })
       )
       .pipe(catchError(mapRpcToHttp));
   }

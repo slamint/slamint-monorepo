@@ -30,10 +30,7 @@ export class AccMgmtController {
   @AuthenticatedRoute('GET', AccountManagementEndPoints.ME, { model: User })
   async getMe(@Req() req: MeRequest) {
     return this.accMgmt
-      .send(
-        AccountManagementCommands.ACC_ME,
-        withCtx({ sub: req.user?.sub, roles: req.user?.roles ?? [] })
-      )
+      .send(AccountManagementCommands.ACC_ME, withCtx({ sub: req.user?.sub }))
       .pipe(catchError(mapRpcToHttp));
   }
 

@@ -10,6 +10,7 @@ export enum AccountManagementEndPoints {
   CHANGE_STATUS_USER_BY_ID = 'users/:id/change-status',
   UPDATE_DEPARTMENT_USER_BY_ID = 'users/:id/update-department',
   UPDATE_MANAGER_USER_BY_ID = 'users/:id/update-manager',
+  UPDATE_ROLE_USER_BY_ID = 'users/:id/update-role',
 }
 
 export enum DepartmentEndpoints {

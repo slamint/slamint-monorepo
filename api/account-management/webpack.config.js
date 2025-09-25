@@ -1,7 +1,7 @@
 const { NxAppWebpackPlugin } = require('@nx/webpack/app-plugin');
 const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin');
 
-const { join } = require('path');
+const { join } = require('node:path');
 
 module.exports = {
   output: {

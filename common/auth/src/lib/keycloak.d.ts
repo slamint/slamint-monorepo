@@ -44,3 +44,34 @@ export interface JwtUser extends KcJwtPayload {
   email_verified?: boolean;
   priorityRole?: string;
 }
+
+export interface KCRealmRole {
+  id: string;
+  name: string;
+  description?: string;
+  composite: boolean;
+  clientRole: boolean;
+  containerId: string;
+}
+
+export interface KCUserAccess {
+  manageGroupMembership: boolean;
+  view: boolean;
+  mapRoles: boolean;
+  impersonate: boolean;
+  manage: boolean;
+}
+
+export interface KCUser {
+  id: string;
+  username: string;
+  email?: string;
+  emailVerified: boolean;
+  createdTimestamp: number;
+  enabled: boolean;
+  totp: boolean;
+  disableableCredentialTypes: string[];
+  requiredActions: string[];
+  notBefore: number;
+  access: KCUserAccess;
+}

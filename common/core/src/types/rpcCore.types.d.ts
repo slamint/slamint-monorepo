@@ -1,3 +1,5 @@
+import { AccountManagementErrCodes } from '../enums/errorCode.enum';
+
 export type RpcErrCode =
   | 'BAD_REQUEST'
   | 'NOT_FOUND'
@@ -6,8 +8,10 @@ export type RpcErrCode =
   | 'CONFLICT'
   | 'INTERNAL';
 
+type errorCode = AccountManagementErrCodes;
 export interface RpcErrPayload {
-  code: RpcErrCode;
+  type: RpcErrCode;
+  code?: errorCode;
   message: string;
   details?: unknown;
 }

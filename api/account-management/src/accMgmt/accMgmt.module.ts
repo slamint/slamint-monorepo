@@ -14,6 +14,7 @@ import { AccountManagementController } from './accMgmt.controller';
 import { AccountManagementService } from './accMgmt.service';
 import { DepartmentControler } from './department.controller';
 import { DepartmentService } from './department.service';
+import { KeycloakService } from './keycloak.service';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { DepartmentService } from './department.service';
     AccountManagementService,
     DepartmentService,
     RpcContextInterceptor,
+    KeycloakService,
   ],
 })
 export class AccountManagement {}

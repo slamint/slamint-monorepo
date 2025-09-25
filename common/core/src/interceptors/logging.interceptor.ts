@@ -10,6 +10,14 @@ import { Observable, tap } from 'rxjs';
 import { getRequestContext, LOGGER } from '../logging';
 import type { LoggerLike } from './rcpContext.interceptors';
 
+function extractStatus(err: any, fallback: number): number {
+  if (typeof err?.getStatus === 'function') return err.getStatus();
+  if (typeof err?.status === 'number') return err.status;
+  if (typeof err?.statusCode === 'number') return err.statusCode;
+  if (typeof err?.response?.status === 'number') return err.response.status;
+  return fallback >= 400 ? fallback : 500;
+}
+
 @Injectable()
 export class LoggingInterceptor implements NestInterceptor {
   constructor(@Inject(LOGGER) private readonly logger: LoggerLike) {}
@@ -79,11 +87,13 @@ export class LoggingInterceptor implements NestInterceptor {
         },
         error: (err) => {
           const durationMs = Date.now() - started;
+          const status = extractStatus(err, res.statusCode);
+
           this.logger.error({
             msg: 'http_response_error',
             method,
             path,
-            status: res.statusCode,
+            status,
             durationMs,
             error: {
               message: err?.message,

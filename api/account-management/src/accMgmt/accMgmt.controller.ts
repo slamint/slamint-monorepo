@@ -6,6 +6,7 @@ import type {
   EnsureFromJwtMsg,
   EnsureFromJwtResult,
   ListUsersQueryDto,
+  RoleName,
   UsersDto,
 } from '@slamint/core';
 import { AccountManagementCommands, UpdateMe, User } from '@slamint/core';
@@ -23,10 +24,8 @@ export class AccountManagementController {
   }
 
   @MessagePattern(AccountManagementCommands.ACC_ME)
-  getMe(
-    @Payload() { data }: { data: { sub: string; roles: string[] } }
-  ): Promise<User> {
-    return this.svc.getMe(data.sub, data.roles ?? []);
+  getMe(@Payload() { data }: { data: { sub: string } }): Promise<User> {
+    return this.svc.getMe(data.sub);
   }
 
   @MessagePattern(AccountManagementCommands.ACC_ME_UPDATE)
@@ -79,5 +78,13 @@ export class AccountManagementController {
     { data }: { data: { id: string; managerId: string } }
   ): Promise<User> {
     return this.svc.updateManager(data.id, data.managerId);
+  }
+
+  @MessagePattern(AccountManagementCommands.ACC_CHANGE_ROLE_USER_BY_ID)
+  changeRole(
+    @Payload()
+    { data }: { data: { id: string; role: RoleName } }
+  ): Promise<User> {
+    return this.svc.changeRole(data.id, data.role);
   }
 }

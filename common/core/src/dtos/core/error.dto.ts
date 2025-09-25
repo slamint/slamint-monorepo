@@ -1,38 +1,26 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class ErrorDetailsDto {
-  @ApiProperty()
-  message!: string;
+class ErrorDto {
+  @ApiProperty({ example: 400 })
+  errorCode!: number;
 
-  @ApiProperty()
-  error!: string;
+  @ApiProperty({ example: 'ACCOUNT_USER_ID_INVALID' })
+  errorType!: string;
 
-  @ApiProperty()
-  statusCode!: number;
-}
-
-export class ErrorBodyDto {
-  @ApiProperty()
-  message!: string;
-
-  @ApiProperty({ type: ErrorDetailsDto })
-  details!: ErrorDetailsDto;
+  @ApiProperty({ example: 'Invalid user id' })
+  errorMessage!: string;
 }
 
 export class ErrorInfoDto {
   @ApiProperty({ example: false })
-  success!: boolean;
+  success!: false;
 
-  @ApiProperty({ type: ErrorBodyDto })
-  error!: ErrorBodyDto;
+  @ApiProperty({ type: ErrorDto })
+  error!: ErrorDto;
 
-  @ApiProperty()
+  @ApiProperty({ example: '/api/path' })
   path!: string;
 
-  @ApiProperty({
-    type: String,
-    format: 'date-time',
-    example: '2025-09-16T02:59:58.669Z',
-  })
-  timestamp!: Date;
+  @ApiProperty({ example: '2025-09-16T02:59:58.669Z' })
+  timestamp!: string;
 }

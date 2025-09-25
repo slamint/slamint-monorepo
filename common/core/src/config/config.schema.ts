@@ -13,9 +13,13 @@ export const configSchema = z.object({
   [ConfigKey.DB_NAME]: z.string(),
 
   [ConfigKey.KEYCLOAK_REALM]: z.string(),
-  [ConfigKey.KEYCLOAK_AUTH_SERVER_URL]: z.string().url(),
+  [ConfigKey.KEYCLOAK_SERVER_URL]: z.string().url(),
   [ConfigKey.KEYCLOAK_CLIENT_ID]: z.string(),
   [ConfigKey.KEYCLOAK_CLIENT_SECRET]: z.string(),
+  [ConfigKey.OIDC_ISSUER]: z.string(),
+  [ConfigKey.OIDC_CLIENT]: z.string(),
+  [ConfigKey.OIDC_SVC_CLIENT]: z.string(),
+  [ConfigKey.OIDC_SVC_CLIENT_SECRET]: z.string(),
 
   [ConfigKey.GATEWAY_HOST]: z.string(),
   [ConfigKey.GATEWAY_PORT]: z.string().default('8081'),

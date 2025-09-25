@@ -1,5 +1,5 @@
 const { NxAppWebpackPlugin } = require('@nx/webpack/app-plugin');
-const { join, resolve } = require('path');
+const { join, resolve } = require('node:path');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const swaggerUiDistPath = require('swagger-ui-dist').getAbsoluteFSPath();
 const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin');

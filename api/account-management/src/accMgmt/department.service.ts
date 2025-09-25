@@ -6,7 +6,7 @@ import type {
   DepartmentsDto,
   ListDepartmentQueryDto,
 } from '@slamint/core';
-import { Department, RPCCode, rpcErr } from '@slamint/core';
+import { Department, DepartmentErrCodes, RPCCode, rpcErr } from '@slamint/core';
 import { plainToInstance } from 'class-transformer';
 import { isUUID } from 'class-validator';
 import {
@@ -82,8 +82,9 @@ export class DepartmentService {
   async getDeptById(id: string): Promise<DepartmentDto> {
     if (!id || !isUUID(id)) {
       throw rpcErr({
-        code: RPCCode.BAD_REQUEST,
-        message: 'Dept id is not valid',
+        type: RPCCode.BAD_REQUEST,
+        code: DepartmentErrCodes.INVALID_DEPT,
+        message: DepartmentErrCodes.INVALID_DEPT,
       });
     }
 
@@ -91,8 +92,9 @@ export class DepartmentService {
 
     if (!dept) {
       throw rpcErr({
-        code: RPCCode.NOT_FOUND,
-        message: 'Dept not found',
+        type: RPCCode.NOT_FOUND,
+        code: DepartmentErrCodes.DEPT_NOT_FOUND,
+        message: DepartmentErrCodes.DEPT_NOT_FOUND,
       });
     }
     return plainToInstance(Department, dept, {
@@ -103,15 +105,17 @@ export class DepartmentService {
   async addDept(data: DepartmentAddOrUpdateDto): Promise<DepartmentDto> {
     if (!data) {
       throw rpcErr({
-        code: RPCCode.BAD_REQUEST,
-        message: 'invalid department details',
+        type: RPCCode.BAD_REQUEST,
+        code: DepartmentErrCodes.DEPT_NOT_FOUND,
+        message: DepartmentErrCodes.DEPT_NOT_FOUND,
       });
     }
     const dept = await this.department.findOne({ where: { code: data.code } });
     if (dept?.id) {
       throw rpcErr({
-        code: RPCCode.BAD_REQUEST,
-        message: 'department already exist',
+        type: RPCCode.CONFLICT,
+        code: DepartmentErrCodes.DEPT_EXIST,
+        message: DepartmentErrCodes.DEPT_EXIST,
       });
     }
 

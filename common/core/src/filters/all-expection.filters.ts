@@ -20,52 +20,54 @@ export class AllExceptionFilter implements ExceptionFilter {
     const req = ctx.getRequest<Request>();
 
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
-    let message = 'Internal server error';
-    let details: unknown = undefined;
+    let errorType = 'INTERNAL_SERVER_ERROR';
+    let errorMessage = 'Internal server error';
+    let rawDetails: unknown = undefined;
 
     if (exception instanceof HttpException) {
       status = exception.getStatus();
 
       const resp = exception.getResponse();
-      details = resp;
+      rawDetails = resp;
 
-      if (typeof resp === 'string') {
-        message = resp;
-      } else if (resp && typeof resp === 'object') {
-        const maybeMsg = (resp as Record<string, unknown>).message;
-        if (Array.isArray(maybeMsg)) {
-          message = maybeMsg.join(', ');
-        } else if (typeof maybeMsg === 'string') {
-          message = maybeMsg;
-        } else {
-          message = exception.message;
-        }
+      if (resp && typeof resp === 'object') {
+        const r = resp as Record<string, any>;
+        if (typeof r.errorType === 'string') errorType = r.errorType;
+        if (typeof r.errorMessage === 'string') errorMessage = r.errorMessage;
+        if (!r.errorType && typeof r.message === 'string')
+          errorMessage = r.message;
+      } else if (typeof resp === 'string') {
+        errorMessage = resp;
       } else {
-        message = exception.message;
+        errorMessage = exception.message ?? errorMessage;
       }
     } else if (exception instanceof Error) {
-      message = exception.message;
+      errorMessage = exception.message || errorMessage;
+      errorType = exception.name || errorType;
     }
+
     this.logger.error({
       msg: 'unhandled_exception',
       method: req.method,
       path: req.originalUrl ?? req.url,
       status,
       error: {
-        message: message ?? 'Internal Server Error',
-        details,
-        // If you want full stack in logs, remove redaction for error.stack in logger module
+        type: errorType,
+        message: errorMessage,
+        details: rawDetails,
         stack: exception instanceof Error ? exception.stack : undefined,
         name: exception instanceof Error ? exception.name : undefined,
       },
     });
+
     res.status(status).json({
       success: false,
       error: {
-        message,
-        details,
+        errorCode: status,
+        errorType,
+        errorMessage,
       },
-      path: req.url,
+      path: req.originalUrl ?? req.url,
       timestamp: new Date().toISOString(),
     });
   }
