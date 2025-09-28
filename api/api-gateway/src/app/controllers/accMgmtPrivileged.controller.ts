@@ -21,6 +21,7 @@ import {
   ListUsersQueryDto,
   mapRpcToHttp,
   MICRO_SERVICES,
+  RoleItem,
   RoleName,
   RolesRoute,
   UpdateDepartmentDto,
@@ -52,12 +53,54 @@ export class AccMgmtControllerPrivileged {
     [RoleName.admin],
     {
       model: User,
+      success: 201,
     }
   )
   @ApiBody({ type: InviteUser })
   inviteUser(@Body() data: InviteUser) {
     return this.accMgmt
       .send(AccountManagementCommands.ACC_INVITE_USER, withCtx({ user: data }))
+      .pipe(catchError(mapRpcToHttp));
+  }
+
+  @ApiOperation({
+    summary: 'Resend email for new user',
+    description: `Resend email for newly created user - **admin** only`,
+  })
+  @RolesRoute(
+    'POST',
+    AccountManagementEndPoints.SEND_EMAIL_USER_BY_ID,
+    [RoleName.admin],
+    {
+      success: 204,
+    }
+  )
+  @ApiParam({ name: 'id', type: String, format: 'uuid' })
+  resendInviteEmail(@Param('id') id: string) {
+    const data = this.accMgmt
+      .send(AccountManagementCommands.ACC_RESEND_EMAIL, withCtx({ id }))
+      .pipe(catchError(mapRpcToHttp));
+
+    if (!data) {
+      return;
+    }
+  }
+
+  @ApiOperation({
+    summary: 'Get roles for admin, manager role',
+    description: `This Routes can be accessed with the Bearer token along with **admin** (or) **manager** role`,
+  })
+  @RolesRoute(
+    'GET',
+    AccountManagementEndPoints.USER_ROLES_LIST,
+    [RoleName.admin],
+    {
+      model: [RoleItem],
+    }
+  )
+  getRoles() {
+    return this.accMgmt
+      .send(AccountManagementCommands.ACC_GET_ROLES, withCtx({}))
       .pipe(catchError(mapRpcToHttp));
   }
 
@@ -100,7 +143,7 @@ export class AccMgmtControllerPrivileged {
       model: User,
     }
   )
-  @ApiParam({ name: 'id', type: String })
+  @ApiParam({ name: 'id', type: String, format: 'uuid' })
   getByUserID(@Param('id') id: string, @CurrentUser() currentUser: JwtUser) {
     return this.accMgmt
       .send(
@@ -122,7 +165,7 @@ export class AccMgmtControllerPrivileged {
       model: User,
     }
   )
-  @ApiParam({ name: 'id', type: String })
+  @ApiParam({ name: 'id', type: String, format: 'uuid' })
   @ApiBody({ type: ChangeStatus })
   changeStatus(@Param('id') id: string, @Body() data: ChangeStatus) {
     return this.accMgmt
@@ -145,7 +188,7 @@ export class AccMgmtControllerPrivileged {
       model: User,
     }
   )
-  @ApiParam({ name: 'id', type: String })
+  @ApiParam({ name: 'id', type: String, format: 'uuid' })
   @ApiBody({ type: UpdateDepartmentDto })
   updateDepartment(@Param('id') id: string, @Body() data: UpdateDepartmentDto) {
     return this.accMgmt
@@ -168,7 +211,7 @@ export class AccMgmtControllerPrivileged {
       model: User,
     }
   )
-  @ApiParam({ name: 'id', type: String })
+  @ApiParam({ name: 'id', type: String, format: 'uuid' })
   @ApiBody({ type: UpdateManagerDto })
   updateManager(@Param('id') id: string, @Body() data: UpdateManagerDto) {
     return this.accMgmt
@@ -191,7 +234,7 @@ export class AccMgmtControllerPrivileged {
       model: User,
     }
   )
-  @ApiParam({ name: 'id', type: String })
+  @ApiParam({ name: 'id', type: String, format: 'uuid' })
   @ApiBody({ type: UpdateRoleDto })
   changeRole(@Param('id') id: string, @Body() data: UpdateRoleDto) {
     return this.accMgmt

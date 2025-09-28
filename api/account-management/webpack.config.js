@@ -4,6 +4,25 @@ const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin');
 const { join } = require('node:path');
 
 module.exports = {
+  devtool: 'source-map',
+  module: {
+    rules: [
+      // keep your other rules...
+      {
+        test: /\.js$/,
+        enforce: 'pre',
+        use: ['source-map-loader'],
+        // ⛔ don't parse sourcemaps from @redis/* (they reference .ts files not shipped)
+        exclude: [/node_modules\/@redis\/client/, /node_modules\/@redis\//],
+      },
+    ],
+  },
+  ignoreWarnings: [
+    (warning) =>
+      warning.module &&
+      /node_modules\/@redis\/client/.test(warning.module.resource || '') &&
+      /Failed to parse source map/.test(warning.message || ''),
+  ],
   output: {
     path: join(__dirname, 'dist'),
     ...(process.env.NODE_ENV !== 'production' && {

@@ -2,22 +2,30 @@ import { Controller, UsePipes, ValidationPipe } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { JwtUser } from '@slamint/auth';
 
-import type {
-  EnsureFromJwtMsg,
+import {
+  AccountManagementCommands,
   EnsureFromJwtResult,
   InviteUser,
   ListUsersQueryDto,
+  RoleItem,
   RoleName,
+  UpdateMe,
+  User,
   UsersDto,
 } from '@slamint/core';
-import { AccountManagementCommands, UpdateMe, User } from '@slamint/core';
+
+import type { EnsureFromJwtMsg } from '@slamint/core';
 
 import { AccountStatus } from '@slamint/core/entities/users/user.entity';
 import { AccountManagementService } from './accMgmt.service';
+import { KeycloakService } from './keycloak.service';
 
 @Controller()
 export class AccountManagementController {
-  constructor(private readonly svc: AccountManagementService) {}
+  constructor(
+    private readonly svc: AccountManagementService,
+    private readonly kc: KeycloakService
+  ) {}
 
   @MessagePattern(AccountManagementCommands.ACC_ENSURE_FROM_JWT)
   ensureFromJwt(msg: EnsureFromJwtMsg): Promise<EnsureFromJwtResult> {
@@ -95,5 +103,18 @@ export class AccountManagementController {
     { data }: { data: { user: InviteUser } }
   ): Promise<User> {
     return this.svc.inviteUser(data.user);
+  }
+
+  @MessagePattern(AccountManagementCommands.ACC_GET_ROLES)
+  async availableRoles(): Promise<RoleItem[]> {
+    return this.svc.getRoles();
+  }
+
+  @MessagePattern(AccountManagementCommands.ACC_RESEND_EMAIL)
+  sendEmail(
+    @Payload()
+    { data }: { data: { id: string } }
+  ): Promise<{ status: 'ok' }> {
+    return this.svc.sendemail(data.id);
   }
 }

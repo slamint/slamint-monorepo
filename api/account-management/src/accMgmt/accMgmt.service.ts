@@ -15,11 +15,14 @@ import {
   AppUser,
   Department,
   DepartmentErrCodes,
+  RoleItem,
   RoleName,
   RPCCode,
   rpcErr,
+  serverError,
   User,
 } from '@slamint/core';
+import { KCRealmRole } from '@slamint/core/dtos/users/admin/rolesList.dto';
 import { AccountStatus } from '@slamint/core/entities/users/user.entity';
 import { plainToInstance } from 'class-transformer';
 import { isUUID } from 'class-validator';
@@ -211,7 +214,6 @@ export class AccountManagementService {
   }
 
   async inviteUser(data: InviteUser): Promise<User> {
-    console.log(data);
     const user: KCUser = await this.kcService.inviteUser(data);
     const name =
       [user.firstName, user.lastName].filter(Boolean).join(' ') ||
@@ -255,6 +257,20 @@ export class AccountManagementService {
       excludeExtraneousValues: true,
       enableImplicitConversion: true,
     });
+  }
+
+  async sendemail(id: string): Promise<{ status: 'ok' }> {
+    const emailSent = this.kcService.sendEmail(id);
+
+    if (!emailSent) {
+      throw rpcErr({
+        type: RPCCode.BAD_REQUEST,
+        code: serverError.INTERNAL_SERVER_ERROR,
+        message: AccountManagementErrMessage.EMAIL_TRIGGER,
+      });
+    }
+
+    return { status: 'ok' };
   }
   async getAllUsers(
     data: JwtUser,
@@ -512,6 +528,15 @@ export class AccountManagementService {
 
     const updated = await this.users.save(user);
     return this.toUserDTO(updated, user.role);
+  }
+
+  async getRoles(): Promise<RoleItem[]> {
+    const roles = await this.kcService.getRealmRolesCached();
+
+    return plainToInstance(RoleItem, roles as KCRealmRole[], {
+      excludeExtraneousValues: true,
+      enableImplicitConversion: true,
+    });
   }
 
   async changeRole(id: string, role: RoleName): Promise<User> {

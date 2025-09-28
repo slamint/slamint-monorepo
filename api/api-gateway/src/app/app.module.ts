@@ -23,6 +23,7 @@ import { AppController } from './app.controller';
 import { AccMgmtController } from './controllers';
 import { AccMgmtControllerPrivileged } from './controllers/accMgmtPrivileged.controller';
 import { DepartmentController } from './controllers/department.controller';
+
 @Module({
   imports: [
     ServeStaticModule.forRoot({

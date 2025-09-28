@@ -8,8 +8,12 @@ import {
   Department,
   LoggerModule,
   RpcContextInterceptor,
+  type LoggerLike,
 } from '@slamint/core';
 
+import KeyvRedis from '@keyv/redis';
+import { CacheModule } from '@nestjs/cache-manager';
+import Keyv from 'keyv';
 import { AccountManagementController } from './accMgmt.controller';
 import { AccountManagementService } from './accMgmt.service';
 import { DepartmentControler } from './department.controller';
@@ -31,6 +35,39 @@ import { KeycloakService } from './keycloak.service';
         autoLoadEntities: true,
         synchronize: true,
       }),
+    }),
+    CacheModule.registerAsync({
+      isGlobal: true,
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: async (cs: ConfigService, logger: LoggerLike) => {
+        const redisPassword = cs.get<string>(ConfigKey.REDIS_PASSWORD);
+        const redisHost = cs.get<string>(ConfigKey.REDIS_HOST);
+        const redisPort = cs.get<string>(ConfigKey.REDIS_PORT);
+        const url = `redis://:${redisPassword}@${redisHost}:${redisPort}/0`;
+
+        const keyvRedis = new KeyvRedis(url);
+
+        const keyv = new Keyv({
+          store: keyvRedis,
+          namespace: 'slamint-accmgmt',
+          ttl: 14400 * 1000,
+        });
+        keyv.on('error', (e) =>
+          logger?.error?.({
+            msg: 'KeyvRedis error',
+            err: e?.message ?? String(e),
+          })
+        );
+
+        logger?.info?.({
+          msg: 'cache_wiring',
+          url,
+          namespace: 'slamint-accmgmt',
+        });
+
+        return { stores: [keyv] };
+      },
     }),
     TypeOrmModule.forFeature([AppUser, Department]),
     LoggerModule,

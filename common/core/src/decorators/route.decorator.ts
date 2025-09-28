@@ -4,13 +4,19 @@ import {
   Delete,
   Get,
   Head,
+  HttpCode,
   Options,
   Patch,
   Post,
   Put,
   Type,
 } from '@nestjs/common';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiConflictResponse,
+  ApiCreatedResponse,
+  ApiNoContentResponse,
+} from '@nestjs/swagger';
 import {
   ApiBadRequestEnvelope,
   ApiOkResponseEnvelope,
@@ -30,9 +36,15 @@ type HttpMethod =
   | 'HEAD'
   | 'ALL';
 
+type SuccessCode = 200 | 201 | 204;
+
 type RouteOptions<TModel = any> = {
   model?: Type<TModel> | Type<TModel>[];
   bearerName?: string; // defaults to 'bearer'
+  /** Set desired success code. Defaults to 200. */
+  success?: SuccessCode;
+  /** Adds 409 Conflict response to the docs. */
+  includeConflict?: boolean;
 };
 
 const METHOD: Record<HttpMethod, (path?: string) => MethodDecorator> = {
@@ -46,31 +58,67 @@ const METHOD: Record<HttpMethod, (path?: string) => MethodDecorator> = {
   ALL: All,
 };
 
-function withDocs<T>(model?: Type<T> | Type<T>[]) {
+function withDocsAndStatus<T>(
+  httpMethod: HttpMethod,
+  options?: RouteOptions<T>
+) {
+  const model = options?.model;
+
   let serializeModel: Type<T> | undefined;
-  if (Array.isArray(model)) {
-    // For arrays, Serialize expects the type of the array's elements
-    if (model.length > 0) {
-      serializeModel = model[0];
-    }
+  const isArray = Array.isArray(model);
+  if (isArray) {
+    if ((model as Type<T>[]).length > 0)
+      serializeModel = (model as Type<T>[])[0];
   } else {
-    serializeModel = model;
+    serializeModel = model as Type<T> | undefined;
   }
 
-  return applyDecorators(
-    ...(serializeModel
-      ? [
-          ApiOkResponseEnvelope(serializeModel, {
-            isArray: Array.isArray(model),
-          }),
-          Serialize(serializeModel),
-        ]
-      : []),
+  const success = options?.success ?? 200;
+  const bearer = options?.bearerName ?? 'bearer';
+
+  const decorators: any[] = [
     ApiBadRequestEnvelope(),
     ApiServerErrorEnvelope(),
-    ApiServerErrorEnvelope(),
-    ApiServerGatewayTimeout()
-  );
+    ApiServerGatewayTimeout(),
+  ];
+
+  // Success responses
+  if (success === 204) {
+    decorators.push(ApiNoContentResponse());
+    decorators.push(HttpCode(204));
+  } else if (success === 201) {
+    // Prefer Created semantics (usually POST). Also serialize if we have a model.
+    decorators.push(
+      ApiCreatedResponse(
+        serializeModel
+          ? { type: serializeModel, isArray }
+          : { description: 'Created' }
+      )
+    );
+    // Nest will default POST to 201; for other methods we keep it explicit:
+    if (httpMethod !== 'POST') decorators.push(HttpCode(201));
+    if (serializeModel) decorators.push(Serialize(serializeModel));
+  } else {
+    // 200 OK (default)
+    if (serializeModel) {
+      decorators.push(
+        ApiOkResponseEnvelope(serializeModel, { isArray }),
+        Serialize(serializeModel)
+      );
+    }
+  }
+
+  // Optional 409 Conflict
+  if (options?.includeConflict) {
+    decorators.push(
+      ApiConflictResponse({
+        description: 'Conflict',
+      })
+    );
+  }
+
+  // Bearer note: only applied in authenticated/roles routes below
+  return { decorators, bearer };
 }
 
 /* ------------------------------ Public route ------------------------------ */
@@ -79,10 +127,8 @@ export function PublicRoute<T>(
   routePath: string,
   options?: RouteOptions<T>
 ) {
-  return applyDecorators(
-    METHOD[httpMethod](routePath),
-    withDocs(options?.model)
-  );
+  const { decorators } = withDocsAndStatus<T>(httpMethod, options);
+  return applyDecorators(METHOD[httpMethod](routePath), ...decorators);
 }
 
 /* --------------------------- Authenticated route -------------------------- */
@@ -91,11 +137,12 @@ export function AuthenticatedRoute<T>(
   routePath: string,
   options?: RouteOptions<T>
 ) {
+  const { decorators, bearer } = withDocsAndStatus<T>(httpMethod, options);
   return applyDecorators(
     METHOD[httpMethod](routePath),
-    withDocs(options?.model),
+    ...decorators,
     Authenticated(),
-    ApiBearerAuth()
+    ApiBearerAuth(bearer)
   );
 }
 
@@ -107,13 +154,13 @@ export function RolesRoute<T>(
   options?: RouteOptions<T>
 ) {
   const roleList = Array.isArray(roles) ? roles : [roles];
-  const bearer = options?.bearerName ?? 'bearer';
+  const { decorators, bearer } = withDocsAndStatus<T>(httpMethod, options);
 
   return applyDecorators(
     METHOD[httpMethod](routePath),
-    withDocs(options?.model),
-    Authenticated(), // role guard typically implies auth
-    Roles(...roleList), // your Roles decorator: (...roles: string[]) => ...
+    ...decorators,
+    Authenticated(),
+    Roles(...roleList),
     ApiBearerAuth(bearer)
   );
 }

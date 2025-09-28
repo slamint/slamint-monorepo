@@ -6,6 +6,8 @@ export enum AccountManagementErrMessage {
   ENGINEER_NOT_FOUND = 'No engineer was found with the specified ID.',
   INVALID_REQUEST_USERID = 'logged in user ID is invalid.',
   ROLE_MUST_DIFFERENT = 'Same role cannot be assigned to the user.',
+  USER_EXIST = 'User already exist in SLAMint IDP.',
+  EMAIL_TRIGGER = 'Unable to trigger email for the provided user.',
 }
 
 export enum DepartmentErrMessage {
