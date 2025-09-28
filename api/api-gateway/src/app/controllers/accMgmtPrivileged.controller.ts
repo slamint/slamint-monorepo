@@ -7,8 +7,7 @@ import {
   ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
-import { catchError } from 'rxjs/operators';
-import { InviteUser } from './../../../../../common/core/src/dtos/users/admin/inviteUser.dto';
+import { catchError, map } from 'rxjs/operators';
 
 import type { JwtUser } from '@slamint/auth';
 import { CurrentUser } from '@slamint/auth';
@@ -18,6 +17,7 @@ import {
   ApiVersion,
   ChangeStatus,
   Controllers,
+  InviteUser,
   ListUsersQueryDto,
   mapRpcToHttp,
   MICRO_SERVICES,
@@ -44,8 +44,9 @@ export class AccMgmtControllerPrivileged {
   ) {}
 
   @ApiOperation({
-    summary: 'invite new user',
-    description: `Invite New User for **admin** only`,
+    summary: 'Invite a new user (admin)',
+    description:
+      'Creates a user invitation and sends the welcome email. Admin-only.',
   })
   @RolesRoute(
     'POST',
@@ -64,8 +65,9 @@ export class AccMgmtControllerPrivileged {
   }
 
   @ApiOperation({
-    summary: 'Resend email for new user',
-    description: `Resend email for newly created user - **admin** only`,
+    summary: 'Resend invite email (admin)',
+    description:
+      'Resends the onboarding email for a pending user by ID. Returns 204 on success.',
   })
   @RolesRoute(
     'POST',
@@ -77,18 +79,17 @@ export class AccMgmtControllerPrivileged {
   )
   @ApiParam({ name: 'id', type: String, format: 'uuid' })
   resendInviteEmail(@Param('id') id: string) {
-    const data = this.accMgmt
+    return this.accMgmt
       .send(AccountManagementCommands.ACC_RESEND_EMAIL, withCtx({ id }))
-      .pipe(catchError(mapRpcToHttp));
-
-    if (!data) {
-      return;
-    }
+      .pipe(
+        map(() => undefined),
+        catchError(mapRpcToHttp)
+      );
   }
 
   @ApiOperation({
-    summary: 'Get roles for admin, manager role',
-    description: `This Routes can be accessed with the Bearer token along with **admin** (or) **manager** role`,
+    summary: 'List available roles (admin)',
+    description: 'Returns assignable roles for user management.',
   })
   @RolesRoute(
     'GET',
@@ -114,8 +115,9 @@ export class AccMgmtControllerPrivileged {
     }
   )
   @ApiOperation({
-    summary: 'Get all users for admin, manager role',
-    description: `This Routes can be accessed with the Bearer token along with **admin** (or) **manager** role`,
+    summary: 'Search and list users (admin/manager)',
+    description:
+      'Returns a paginated list of users filtered by query parameters.',
   })
   listUsers(
     @CurrentUser() currentUser: JwtUser,
@@ -132,8 +134,8 @@ export class AccMgmtControllerPrivileged {
   }
 
   @ApiOperation({
-    summary: 'Get user by id for admin, manager role',
-    description: `This Routes can be accessed with the Bearer token along with **admin** (or) **manager** role`,
+    summary: 'Get user by ID (admin/manager)',
+    description: 'Retrieves a single user`s profile and status by ID.',
   })
   @RolesRoute(
     'GET',
@@ -154,8 +156,8 @@ export class AccMgmtControllerPrivileged {
   }
 
   @ApiOperation({
-    summary: 'lock or unlock user for admin role',
-    description: `lock or unlock user by user id for **admin** only`,
+    summary: 'Change user status (admin)',
+    description: 'Locks or unlocks a user account with an optional reason.',
   })
   @RolesRoute(
     'PATCH',
@@ -177,8 +179,8 @@ export class AccMgmtControllerPrivileged {
   }
 
   @ApiOperation({
-    summary: 'update department of user',
-    description: `update department by user id for **admin** only`,
+    summary: 'Update user department (admin)',
+    description: 'Sets the user`s department by department ID.',
   })
   @RolesRoute(
     'PATCH',
@@ -200,8 +202,8 @@ export class AccMgmtControllerPrivileged {
   }
 
   @ApiOperation({
-    summary: 'update manager of user',
-    description: `update manager by user id for **admin** only`,
+    summary: 'Update user manager (admin)',
+    description: 'Assigns or changes the user`s manager by manager ID.',
   })
   @RolesRoute(
     'PATCH',
@@ -223,8 +225,8 @@ export class AccMgmtControllerPrivileged {
   }
 
   @ApiOperation({
-    summary: 'update role of user',
-    description: `update role by user id for **admin** only`,
+    summary: 'Update user role (admin)',
+    description: 'Changes the user`s role to the specified role.',
   })
   @RolesRoute(
     'PATCH',

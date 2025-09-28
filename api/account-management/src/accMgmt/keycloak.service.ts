@@ -357,13 +357,12 @@ export class KeycloakService {
 
     if (checkUserExistance) {
       try {
-        const { data } = await this.kcRequest<KCRealmRole[]>(
+        const { data } = await this.kcRequest<KCUser>(
           'GET',
           this.admin(`/users/${id}`),
           { headers }
         );
-
-        if (!data) {
+        if (!data?.id) {
           throw rpcErr({
             type: RPCCode.BAD_REQUEST,
             code: AccountManagementErrCodes.USER_NOT_FOUND,
@@ -371,20 +370,21 @@ export class KeycloakService {
           });
         }
       } catch (err) {
-        console.debug(err);
         throw rpcErr({
-          type: RPCCode.INTERNAL_SERVER_ERROR,
-          code: serverError.INTERNAL_SERVER_ERROR,
+          type: RPCCode.BAD_REQUEST,
+          code: AccountManagementErrCodes.USER_NOT_FOUND,
           message: AccountManagementErrMessage.USER_NOT_FOUND,
         });
       }
     }
-    const triggerEmail = await this.kcRequest(
+
+    const res = await this.kcRequest(
       'PUT',
       this.admin(`/users/${id}/execute-actions-email`),
       { headers, data: ['VERIFY_EMAIL', 'UPDATE_PASSWORD'] }
     );
-    if (!triggerEmail) {
+
+    if (!res || (res.status && res.status !== 204)) {
       throw rpcErr({
         type: RPCCode.INTERNAL_SERVER_ERROR,
         code: serverError.INTERNAL_SERVER_ERROR,

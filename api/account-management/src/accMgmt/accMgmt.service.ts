@@ -260,7 +260,7 @@ export class AccountManagementService {
   }
 
   async sendemail(id: string): Promise<{ status: 'ok' }> {
-    const emailSent = this.kcService.sendEmail(id);
+    const emailSent = await this.kcService.sendEmail(id, true);
 
     if (!emailSent) {
       throw rpcErr({

@@ -1,5 +1,6 @@
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { RpcException } from '@nestjs/microservices';
+import { serverError, ServerErrorMessage } from '../enums';
 
 export enum RPCCode {
   BAD_REQUEST = 'BAD_REQUEST',
@@ -36,7 +37,7 @@ export function mapRpcToHttp(e: any): never {
 
   // If upstream didn't send a structured payload, best-effort map by string
   if (!payload?.type) {
-    const msg = String(e?.message ?? e ?? 'Upstream error');
+    const msg = String(e?.message ?? e ?? serverError.INTERNAL_SERVER_ERROR);
     const m = msg.toLowerCase();
     if (m.includes('not found'))
       throw new HttpException(
@@ -64,7 +65,10 @@ export function mapRpcToHttp(e: any): never {
         HttpStatus.BAD_REQUEST
       );
     throw new HttpException(
-      { errorType: 'INTERNAL_SERVER_ERROR', errorMessage: 'Upstream error' },
+      {
+        errorType: 'INTERNAL_SERVER_ERROR',
+        errorMessage: ServerErrorMessage.INTERNAL_SERVER_ERROR,
+      },
       HttpStatus.INTERNAL_SERVER_ERROR
     );
   }
