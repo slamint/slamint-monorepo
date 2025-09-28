@@ -396,92 +396,82 @@ export class KeycloakService {
   }
   // -------------------- Public APIs (signatures & return data preserved) --------------------
   async inviteUser(data: InviteUser): Promise<KCUser> {
-    try {
-      const token = await this.getAdminToken();
-      const headers = { Authorization: `Bearer ${token}` };
+    const token = await this.getAdminToken();
+    const headers = { Authorization: `Bearer ${token}` };
 
-      const username = `${data.firstName} ${data.lastName}`
-        .replaceAll(' ', '_')
-        .toLowerCase();
+    const username = `${data.firstName} ${data.lastName}`
+      .replaceAll(' ', '_')
+      .toLowerCase();
 
-      const createRes = await this.kcRequest('POST', this.admin('/users'), {
-        headers,
-        data: {
-          username,
-          firstName: data.firstName,
-          lastName: data.lastName,
-          email: data.email,
-          enabled: true,
-        },
+    const createRes = await this.kcRequest('POST', this.admin('/users'), {
+      headers,
+      data: {
+        username,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        enabled: true,
+      },
+    });
+
+    let id: string | undefined;
+
+    if (createRes.status === 201 || createRes.status === 204) {
+      id = createRes.headers?.location?.toString().split('/').pop();
+    } else if (createRes.status === 409) {
+      throw rpcErr({
+        type: RPCCode.CONFLICT,
+        code: AccountManagementErrCodes.USER_EXIST,
+        message: AccountManagementErrMessage.USER_EXIST,
       });
-
-      let id: string | undefined;
-
-      if (createRes.status === 201 || createRes.status === 204) {
-        id = createRes.headers?.location?.toString().split('/').pop();
-      } else if (createRes.status === 409) {
-        throw rpcErr({
-          type: RPCCode.CONFLICT,
-          code: AccountManagementErrCodes.USER_EXIST,
-          message: AccountManagementErrMessage.USER_EXIST,
-        });
-      } else {
-        throw rpcErr({
-          type: RPCCode.INTERNAL_SERVER_ERROR,
-          code: serverError.INTERNAL_SERVER_ERROR,
-          message: ServerErrorMessage.INTERNAL_SERVER_ERROR,
-        });
-      }
-
-      if (!id) {
-        throw rpcErr({
-          type: RPCCode.INTERNAL_SERVER_ERROR,
-          code: serverError.INTERNAL_SERVER_ERROR,
-          message: ServerErrorMessage.INTERNAL_SERVER_ERROR,
-        });
-      }
-
-      const user = await this.kcRequest<KCUser>(
-        'GET',
-        this.admin(`/users/${id}`),
-        { headers }
-      );
-      if (!user) {
-        throw rpcErr({
-          type: RPCCode.INTERNAL_SERVER_ERROR,
-          code: serverError.INTERNAL_SERVER_ERROR,
-          message: ServerErrorMessage.INTERNAL_SERVER_ERROR,
-        });
-      }
-
-      // Assign role using cached roles (avoids an extra /roles call)
-      const requiredRole = await this.getRoleByNameCached(
-        data.role as RoleName
-      );
-      if (!requiredRole) {
-        throw rpcErr({
-          type: RPCCode.BAD_REQUEST,
-          code: 'ROLE_NOT_FOUND',
-          message: `Role '${data.role}' does not exist in realm ${this.realm}`,
-        });
-      }
-
-      await this.kcRequest(
-        'POST',
-        this.admin(`/users/${user.data.id}/role-mappings/realm`),
-        { headers, data: [requiredRole] }
-      );
-
-      await this.sendEmail(id);
-
-      return user.data as KCUser;
-    } catch (_err) {
+    } else {
       throw rpcErr({
         type: RPCCode.INTERNAL_SERVER_ERROR,
         code: serverError.INTERNAL_SERVER_ERROR,
         message: ServerErrorMessage.INTERNAL_SERVER_ERROR,
       });
     }
+
+    if (!id) {
+      throw rpcErr({
+        type: RPCCode.INTERNAL_SERVER_ERROR,
+        code: serverError.INTERNAL_SERVER_ERROR,
+        message: ServerErrorMessage.INTERNAL_SERVER_ERROR,
+      });
+    }
+
+    const user = await this.kcRequest<KCUser>(
+      'GET',
+      this.admin(`/users/${id}`),
+      { headers }
+    );
+    if (!user) {
+      throw rpcErr({
+        type: RPCCode.INTERNAL_SERVER_ERROR,
+        code: serverError.INTERNAL_SERVER_ERROR,
+        message: ServerErrorMessage.INTERNAL_SERVER_ERROR,
+      });
+    }
+
+    // Assign role using cached roles (avoids an extra /roles call)
+    const requiredRole = await this.getRoleByNameCached(data.role as RoleName);
+    if (!requiredRole) {
+      throw rpcErr({
+        type: RPCCode.BAD_REQUEST,
+        code: 'ROLE_NOT_FOUND',
+        message: `Role '${data.role}' does not exist in realm ${this.realm}`,
+      });
+    }
+
+    await this.kcRequest(
+      'POST',
+      this.admin(`/users/${user.data.id}/role-mappings/realm`),
+      { headers, data: [requiredRole] }
+    );
+
+    await this.sendEmail(id);
+
+    return user.data as KCUser;
   }
 
   async setEnabled(kcUserId: string, enabled: boolean) {
