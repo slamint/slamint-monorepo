@@ -8,6 +8,7 @@ export enum AccountManagementErrMessage {
   ROLE_MUST_DIFFERENT = 'Same role cannot be assigned to the user.',
   USER_EXIST = 'User already exist in SLAMint IDP.',
   EMAIL_TRIGGER = 'Unable to trigger email for the provided user.',
+  MANAGER_HAS_ENGINEER = 'The manager has engineers assigned and cannot be deleted.',
 }
 
 export enum DepartmentErrMessage {

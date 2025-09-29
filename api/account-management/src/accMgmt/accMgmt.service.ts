@@ -550,6 +550,22 @@ export class AccountManagementService {
 
     const user = await this.loadUserOrThrow({ id });
 
+    const { role: currentRole } = user;
+
+    if (currentRole === RoleName.manager) {
+      const managed = await this.users.count({
+        where: { reportingManager: { id } },
+      });
+
+      if (managed > 0) {
+        throw rpcErr({
+          type: RPCCode.BAD_REQUEST,
+          code: AccountManagementErrCodes.MANAGER_HAS_ENGINEER,
+          message: AccountManagementErrMessage.MANAGER_HAS_ENGINEER,
+        });
+      }
+    }
+
     if (user.role === role) {
       throw rpcErr({
         type: RPCCode.BAD_REQUEST,
