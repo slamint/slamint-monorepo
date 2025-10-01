@@ -1,12 +1,21 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import type {
+  AppUser,
   DepartmentAddOrUpdateDto,
   DepartmentDto,
   DepartmentsDto,
   ListDepartmentQueryDto,
 } from '@slamint/core';
-import { Department, DepartmentErrCodes, RPCCode, rpcErr } from '@slamint/core';
+import {
+  Department,
+  DepartmentErrCodes,
+  DepartmentErrMessage,
+  RPCCode,
+  rpcErr,
+  serverError,
+  ServerErrorMessage,
+} from '@slamint/core';
 import { plainToInstance } from 'class-transformer';
 import { isUUID } from 'class-validator';
 import {
@@ -32,7 +41,8 @@ const departmentViewSelect: FindOptionsSelect<Department> = {
 export class DepartmentService {
   constructor(
     @InjectRepository(Department)
-    private readonly department: Repository<Department>
+    private readonly department: Repository<Department>,
+    private readonly accMgmt: Repository<AppUser>
   ) {}
 
   async getAllDepartments(
@@ -84,7 +94,7 @@ export class DepartmentService {
       throw rpcErr({
         type: RPCCode.BAD_REQUEST,
         code: DepartmentErrCodes.INVALID_DEPT,
-        message: DepartmentErrCodes.INVALID_DEPT,
+        message: DepartmentErrMessage.INVALID_DEPT,
       });
     }
 
@@ -94,7 +104,7 @@ export class DepartmentService {
       throw rpcErr({
         type: RPCCode.NOT_FOUND,
         code: DepartmentErrCodes.DEPT_NOT_FOUND,
-        message: DepartmentErrCodes.DEPT_NOT_FOUND,
+        message: DepartmentErrMessage.DEPT_NOT_FOUND,
       });
     }
     return plainToInstance(Department, dept, {
@@ -107,7 +117,7 @@ export class DepartmentService {
       throw rpcErr({
         type: RPCCode.BAD_REQUEST,
         code: DepartmentErrCodes.DEPT_NOT_FOUND,
-        message: DepartmentErrCodes.DEPT_NOT_FOUND,
+        message: DepartmentErrMessage.DEPT_NOT_FOUND,
       });
     }
     const dept = await this.department.findOne({ where: { code: data.code } });
@@ -115,7 +125,7 @@ export class DepartmentService {
       throw rpcErr({
         type: RPCCode.CONFLICT,
         code: DepartmentErrCodes.DEPT_EXIST,
-        message: DepartmentErrCodes.DEPT_EXIST,
+        message: DepartmentErrMessage.DEPT_EXIST,
       });
     }
 
@@ -126,6 +136,77 @@ export class DepartmentService {
     const savedDept = await this.department.save(newDept);
 
     return plainToInstance(Department, savedDept, {
+      enableImplicitConversion: true,
+    });
+  }
+
+  async deleteDepartment(id: string): Promise<boolean> {
+    if (!id || !isUUID(id)) {
+      throw rpcErr({
+        type: RPCCode.BAD_REQUEST,
+        code: DepartmentErrCodes.INVALID_DEPT,
+        message: DepartmentErrMessage.INVALID_DEPT,
+      });
+    }
+    const dept = await this.department.findOne({ where: { id } });
+    if (!dept) {
+      throw rpcErr({
+        type: RPCCode.CONFLICT,
+        code: DepartmentErrCodes.DEPT_NOT_FOUND,
+        message: DepartmentErrMessage.DEPT_NOT_FOUND,
+      });
+    }
+
+    const count = await this.accMgmt.count({ where: { department: { id } } });
+
+    if (count > 0) {
+      throw rpcErr({
+        type: RPCCode.CONFLICT,
+        code: DepartmentErrCodes.DEPT_IN_USE,
+        message: DepartmentErrMessage.DEPT_IN_USE,
+      });
+    }
+    const result = await this.department.remove(dept);
+
+    if (!result) {
+      throw rpcErr({
+        type: RPCCode.INTERNAL_SERVER_ERROR,
+        code: serverError.INTERNAL_SERVER_ERROR,
+        message: ServerErrorMessage.INTERNAL_SERVER_ERROR,
+      });
+    }
+
+    return true;
+  }
+
+  async updateDepartment(data: {
+    id: string;
+    code: string;
+    name: string;
+  }): Promise<DepartmentDto> {
+    if (!data?.id || !isUUID(data?.id)) {
+      throw rpcErr({
+        type: RPCCode.BAD_REQUEST,
+        code: DepartmentErrCodes.INVALID_DEPT,
+        message: DepartmentErrMessage.INVALID_DEPT,
+      });
+    }
+    const dept = await this.department.findOne({ where: { id: data.id } });
+    if (!dept) {
+      throw rpcErr({
+        type: RPCCode.CONFLICT,
+        code: DepartmentErrCodes.DEPT_NOT_FOUND,
+        message: DepartmentErrMessage.DEPT_NOT_FOUND,
+      });
+    }
+
+    const updatedDept = await this.department.save({
+      ...dept,
+      code: data.code ?? dept.code,
+      name: data.name ?? dept.name,
+    });
+
+    return plainToInstance(Department, updatedDept, {
       enableImplicitConversion: true,
     });
   }

@@ -35,4 +35,19 @@ export class DepartmentControler {
   ): Promise<DepartmentDto> {
     return this.svc.addDept(dept);
   }
+
+  @MessagePattern(DepartmentCommands.DELETE_BY_ID)
+  deleteDepartment(
+    @Payload() { data: { id } }: { data: { id: string } }
+  ): Promise<boolean> {
+    return this.svc.deleteDepartment(id);
+  }
+
+  @MessagePattern(DepartmentCommands.UPDATE_BY_ID)
+  updateDepartment(
+    @Payload()
+    { data }: { data: { id: string; code: string; name: string } }
+  ): Promise<DepartmentDto> {
+    return this.svc.updateDepartment(data);
+  }
 }

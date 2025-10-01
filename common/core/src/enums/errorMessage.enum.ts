@@ -23,6 +23,7 @@ export enum DepartmentErrMessage {
   INVALID_DEPT = 'The provided department ID is invalid.',
   DEPT_NOT_FOUND = 'No department was found with the specified ID.',
   DEPT_EXIST = 'Department already exist, Try adding new department details',
+  DEPT_IN_USE = 'The department is currently in use and cannot be deleted',
   INVALID_DEPT_DETAILS = 'The details provided to create new department are not valid',
 }
 
