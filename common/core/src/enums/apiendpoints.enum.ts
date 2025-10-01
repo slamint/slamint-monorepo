@@ -23,5 +23,4 @@ export enum DepartmentEndpoints {
   GET_BY_ID = ':id',
   UPDATE_BY_ID = ':id/update',
   CHANGE_STATUS_BY_ID = ':id/change-status',
-  DELETE_BY_ID = ':id',
 }

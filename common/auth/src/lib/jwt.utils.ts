@@ -64,17 +64,23 @@ export function collectUserRoles(user: JwtUser): ReadonlySet<RoleName> {
   };
 
   // 1) your mapped array
-  (user.roles ?? []).forEach(addRaw);
+  for (const r of user.roles ?? []) {
+    addRaw(r);
+  }
 
   // 2) realm roles
-  (user.realm_access?.roles ?? []).forEach(addRaw);
+  for (const r of user.realm_access?.roles ?? []) {
+    addRaw(r);
+  }
 
   // 3) resource roles across clients
   const ra = user.resource_access;
   if (ra) {
-    Object.values(ra).forEach((entry) => {
-      (entry.roles ?? []).forEach(addRaw);
-    });
+    for (const entry of Object.values(ra)) {
+      for (const r of entry.roles ?? []) {
+        addRaw(r);
+      }
+    }
   }
 
   return out;

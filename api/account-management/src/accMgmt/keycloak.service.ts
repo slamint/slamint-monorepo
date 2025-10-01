@@ -5,11 +5,12 @@ import axios, {
   AxiosError,
   AxiosInstance,
   AxiosRequestConfig,
+  AxiosResponse,
   Method,
 } from 'axios';
 import type { Cache } from 'cache-manager';
-import http from 'http';
-import https from 'https';
+import http from 'node:http';
+import https from 'node:https';
 
 import type { KCRealmRole, KCUser } from '@slamint/auth';
 import type { InviteUser, LoggerLike } from '@slamint/core';
@@ -41,7 +42,7 @@ function isTransientNetErr(err: any) {
 @Injectable()
 export class KeycloakService {
   private readonly http: AxiosInstance;
-  private inflight = new Map<string, Promise<any>>();
+  private readonly inflight = new Map<string, Promise<any>>();
   private readonly ROLES_TTL_SEC = 120_000;
 
   private rolesLastKey() {
@@ -104,35 +105,55 @@ export class KeycloakService {
     const started = Date.now();
     const requestId = getRequestContext()?.requestId ?? '';
 
-    const body = cfg.data;
-    const reqSize =
-      body === undefined
-        ? undefined
-        : Buffer.byteLength(
-            typeof body === 'string'
-              ? body
-              : body instanceof URLSearchParams
-              ? body.toString()
-              : JSON.stringify(body)
-          );
+    const calcByteSize = (val: unknown): number | undefined => {
+      if (val == null) return undefined;
 
-    this.logger.info({
-      msg: 'http_request',
-      method,
-      path: url,
-      requestId,
-      reqSize,
-      target: 'keycloak',
-    });
+      if (typeof val === 'string') return Buffer.byteLength(val);
 
-    try {
-      // 1st attempt with keep-alive
-      const res = await this.http.request<T>({ method, url, ...cfg });
-      const r = res.data as unknown as string | object | undefined;
-      const resSize =
-        r === undefined
-          ? undefined
-          : Buffer.byteLength(typeof r === 'string' ? r : JSON.stringify(r));
+      if (Buffer.isBuffer(val)) return val.byteLength;
+      if (val instanceof ArrayBuffer) return val.byteLength;
+      if (ArrayBuffer.isView(val)) return val.byteLength;
+
+      if (val instanceof URLSearchParams) {
+        return Buffer.byteLength((val as URLSearchParams).toString());
+      }
+
+      if (
+        typeof val === 'number' ||
+        typeof val === 'boolean' ||
+        typeof val === 'bigint'
+      ) {
+        return Buffer.byteLength(String(val));
+      }
+
+      if (typeof val === 'object') {
+        try {
+          const s = JSON.stringify(val);
+          return s ? Buffer.byteLength(s) : 0;
+        } catch {
+          return undefined;
+        }
+      }
+
+      return undefined;
+    };
+
+    const logReq = (reqSize?: number) =>
+      this.logger.info({
+        msg: 'http_request',
+        method,
+        path: url,
+        requestId,
+        reqSize,
+        target: 'keycloak',
+      });
+
+    const logRes = (res: AxiosResponse, retry = false) => {
+      const data = res.data as unknown;
+      const asString =
+        typeof data === 'string' ? data : JSON.stringify(data) ?? '';
+      const resSize = asString ? Buffer.byteLength(asString) : undefined;
+
       this.logger.info({
         msg: 'http_response',
         method,
@@ -142,49 +163,45 @@ export class KeycloakService {
         resSize,
         requestId,
         target: 'keycloak',
+        ...(retry ? { retry: true } : {}),
       });
+    };
+
+    const noKeepAliveCfg = (): AxiosRequestConfig => ({
+      httpAgent: new http.Agent({ keepAlive: false }),
+      httpsAgent: new https.Agent({
+        keepAlive: false,
+        // keep original behavior: only set rejectUnauthorized for https base
+        rejectUnauthorized: (this.base.startsWith('https://')
+          ? true
+          : undefined) as any,
+      }),
+      timeout: this.http.defaults.timeout,
+    });
+
+    const perform = (extra: AxiosRequestConfig = {}) =>
+      this.http.request<T>({ method, url, ...cfg, ...extra });
+
+    // --- start
+    const reqSize = calcByteSize(cfg.data);
+    logReq(reqSize);
+
+    try {
+      // 1st attempt (keep-alive as configured in this.http)
+      const res = await perform();
+      logRes(res);
       return res;
     } catch (e: any) {
-      // Retry once on transient network errors **without** keep-alive (fresh socket)
       if (isTransientNetErr(e)) {
+        // Retry once on transient errors without keep-alive
         this.logger.info({
           msg: 'http_retry',
           reason: e.code,
           path: url,
           target: 'keycloak',
         });
-        const noKA: AxiosRequestConfig = {
-          httpAgent: new http.Agent({ keepAlive: false }),
-          httpsAgent: new https.Agent({
-            keepAlive: false,
-            rejectUnauthorized: (this.base.startsWith('https://')
-              ? true
-              : undefined) as any,
-          }),
-          timeout: this.http.defaults.timeout,
-        };
-        const res = await this.http.request<T>({
-          method,
-          url,
-          ...noKA,
-          ...cfg,
-        });
-        const r = res.data as unknown as string | object | undefined;
-        const resSize =
-          r === undefined
-            ? undefined
-            : Buffer.byteLength(typeof r === 'string' ? r : JSON.stringify(r));
-        this.logger.info({
-          msg: 'http_response',
-          method,
-          path: url,
-          status: res.status,
-          durationMs: Date.now() - started,
-          resSize,
-          requestId,
-          target: 'keycloak',
-          retry: true,
-        });
+        const res = await perform(noKeepAliveCfg());
+        logRes(res, true);
         return res;
       }
 
@@ -356,20 +373,12 @@ export class KeycloakService {
     const headers = { Authorization: `Bearer ${token}` };
 
     if (checkUserExistance) {
-      try {
-        const { data } = await this.kcRequest<KCUser>(
-          'GET',
-          this.admin(`/users/${id}`),
-          { headers }
-        );
-        if (!data?.id) {
-          throw rpcErr({
-            type: RPCCode.BAD_REQUEST,
-            code: AccountManagementErrCodes.USER_NOT_FOUND,
-            message: AccountManagementErrMessage.USER_NOT_FOUND,
-          });
-        }
-      } catch (err) {
+      const { data } = await this.kcRequest<KCUser>(
+        'GET',
+        this.admin(`/users/${id}`),
+        { headers }
+      );
+      if (!data?.id) {
         throw rpcErr({
           type: RPCCode.BAD_REQUEST,
           code: AccountManagementErrCodes.USER_NOT_FOUND,

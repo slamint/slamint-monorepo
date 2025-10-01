@@ -67,10 +67,9 @@ function withDocsAndStatus<T>(
   let serializeModel: Type<T> | undefined;
   const isArray = Array.isArray(model);
   if (isArray) {
-    if ((model as Type<T>[]).length > 0)
-      serializeModel = (model as Type<T>[])[0];
+    if ((model as Type<T>[]).length > 0) serializeModel = model[0];
   } else {
-    serializeModel = model as Type<T> | undefined;
+    serializeModel = model;
   }
 
   const success = options?.success ?? 200;
@@ -84,9 +83,9 @@ function withDocsAndStatus<T>(
 
   // Success responses
   if (success === 204) {
-    decorators.push(ApiNoContentResponse());
-    decorators.push(HttpCode(204));
-  } else if (success === 201) {
+    decorators.push(ApiNoContentResponse(), HttpCode(204));
+  }
+  if (success === 201) {
     // Prefer Created semantics (usually POST). Also serialize if we have a model.
     decorators.push(
       ApiCreatedResponse(
@@ -98,14 +97,13 @@ function withDocsAndStatus<T>(
     // Nest will default POST to 201; for other methods we keep it explicit:
     if (httpMethod !== 'POST') decorators.push(HttpCode(201));
     if (serializeModel) decorators.push(Serialize(serializeModel));
-  } else {
-    // 200 OK (default)
-    if (serializeModel) {
-      decorators.push(
-        ApiOkResponseEnvelope(serializeModel, { isArray }),
-        Serialize(serializeModel)
-      );
-    }
+  }
+
+  if (success !== 204 && success !== 201 && serializeModel) {
+    decorators.push(
+      ApiOkResponseEnvelope(serializeModel, { isArray }),
+      Serialize(serializeModel)
+    );
   }
 
   // Optional 409 Conflict

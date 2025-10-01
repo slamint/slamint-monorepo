@@ -18,7 +18,7 @@ import {
   ResponseInterceptor,
 } from '@slamint/core';
 
-import { join } from 'path';
+import { join } from 'node:path';
 import { AppController } from './app.controller';
 import { AccMgmtController } from './controllers';
 import { AccMgmtControllerPrivileged } from './controllers/accMgmtPrivileged.controller';

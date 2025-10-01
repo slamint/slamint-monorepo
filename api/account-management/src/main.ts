@@ -28,4 +28,4 @@ async function bootstrap() {
   Logger.log(`🔒 Account Management is running on: http://${host}:${port}`);
 }
 
-bootstrap();
+bootstrap(); // NOSONAR: top-level await requires ESM; this project uses CommonJS.

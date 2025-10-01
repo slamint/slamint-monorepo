@@ -48,4 +48,4 @@ async function bootstrap() {
   Logger.log(`🧾 Swagger UI at http://localhost:${port}/api/swagger-ui`);
 }
 
-bootstrap();
+bootstrap(); // NOSONAR: top-level await requires ESM; this project uses CommonJS.

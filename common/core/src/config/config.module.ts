@@ -52,4 +52,4 @@ export class CoreConfigModule {
 
 export { ConfigModule as NestConfigModule } from '@nestjs/config';
 export { ConfigKey } from './config.key';
-export type { AppConfig };
+export type { AppConfig } from './config.schema';

@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Expose, Type } from 'class-transformer';
-import { randomUUID } from 'crypto';
+import { randomUUID } from 'node:crypto';
 import { RoleName } from '../../decorators/roles.decorator';
 import { AccountStatus } from '../../entities/users/user.entity';
 import { DepartmentDto } from '../department/department.dto';

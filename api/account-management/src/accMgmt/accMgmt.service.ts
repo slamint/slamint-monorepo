@@ -24,7 +24,6 @@ import {
   User,
   UsersDto,
 } from '@slamint/core';
-import { KCRealmRole } from '@slamint/core/dtos/users/admin/rolesList.dto';
 import { AccountStatus } from '@slamint/core/entities/users/user.entity';
 import { plainToInstance } from 'class-transformer';
 import { isUUID } from 'class-validator';
@@ -218,7 +217,7 @@ export class AccountManagementService {
   async getRoles(): Promise<RoleItem[]> {
     const roles = await this.kcService.getRealmRolesCached();
 
-    return plainToInstance(RoleItem, roles as KCRealmRole[], {
+    return plainToInstance(RoleItem, roles, {
       excludeExtraneousValues: true,
       enableImplicitConversion: true,
     });
@@ -345,11 +344,60 @@ export class AccountManagementService {
 
     return { status: 'ok' };
   }
+
+  allowedSort = new Set([
+    'createdAt',
+    'name',
+    'lastLoginAt',
+    'role',
+    'status',
+    'id',
+  ]);
+
+  getSort(requested?: string): keyof AppUser {
+    return (
+      requested && this.allowedSort.has(requested) ? requested : 'createdAt'
+    ) as keyof AppUser;
+  }
+
+  toDate(s?: string): Date | undefined {
+    return s ? new Date(s) : undefined;
+  }
+
+  addRange<T extends object>(
+    obj: T,
+    field: keyof T,
+    from?: string,
+    to?: string
+  ): void {
+    const f = this.toDate(from);
+    const t = this.toDate(to);
+    if (f && t) (obj as any)[field] = Between(f, t);
+    else if (f) (obj as any)[field] = MoreThanOrEqual(f);
+    else if (t) (obj as any)[field] = LessThanOrEqual(t);
+  }
+
+  buildSearchWhere(
+    base: FindOptionsWhere<AppUser>,
+    q?: string
+  ): FindOptionsWhere<AppUser> | FindOptionsWhere<AppUser>[] {
+    const term = q?.trim();
+    if (!term) return base;
+
+    const like = ILike(`%${term}%`);
+    return [
+      { ...base, name: like },
+      { ...base, username: like },
+      { ...base, email: like },
+      { ...base, phone: like },
+    ];
+  }
+
   async getAllUsers(
     data: JwtUser,
     query: ListUsersQueryDto
   ): Promise<UsersDto> {
-    if (!data || !data.sub) {
+    if (!data?.sub) {
       throw rpcErr({
         type: RPCCode.BAD_REQUEST,
         code: AccountManagementErrCodes.INVALID_REQUEST_USERID,
@@ -358,7 +406,6 @@ export class AccountManagementService {
     }
 
     const currentUser = await this.users.findOne({ where: { sub: data.sub } });
-
     if (!currentUser) {
       throw rpcErr({
         type: RPCCode.BAD_REQUEST,
@@ -369,18 +416,10 @@ export class AccountManagementService {
 
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
-    const allowedSort = new Set([
-      'createdAt',
-      'name',
-      'lastLoginAt',
-      'role',
-      'status',
-      'id',
-    ]);
-    const sort =
-      query.sort && allowedSort.has(query.sort) ? query.sort : 'createdAt';
+    const sort = this.getSort(query.sort);
     const order: 'ASC' | 'DESC' = query.order === 'ASC' ? 'ASC' : 'DESC';
 
+    // Base filters
     const base: FindOptionsWhere<AppUser> = {
       ...(query.role && { role: query.role }),
       ...(query.status && { status: query.status }),
@@ -388,30 +427,13 @@ export class AccountManagementService {
       ...(query.managerId && { reportingManager: { id: query.managerId } }),
     };
 
-    const toDate = (s?: string) => (s ? new Date(s) : undefined);
+    // Date ranges
+    this.addRange(base, 'createdAt', query.createdFrom, query.createdTo);
+    this.addRange(base, 'lastLoginAt', query.lastLoginFrom, query.lastLoginTo);
 
-    const cf = toDate(query.createdFrom);
-    const ct = toDate(query.createdTo);
-    if (cf && ct) base.createdAt = Between(cf, ct);
-    else if (cf) base.createdAt = MoreThanOrEqual(cf);
-    else if (ct) base.createdAt = LessThanOrEqual(ct);
+    // Global search
+    const where = this.buildSearchWhere(base, query.q);
 
-    const llf = toDate(query.lastLoginFrom);
-    const llt = toDate(query.lastLoginTo);
-    if (llf && llt) base.lastLoginAt = Between(llf, llt);
-    else if (llf) base.lastLoginAt = MoreThanOrEqual(llf);
-    else if (llt) base.lastLoginAt = LessThanOrEqual(llt);
-
-    let where: FindOptionsWhere<AppUser> | FindOptionsWhere<AppUser>[] = base;
-    if (query.q?.trim()) {
-      const term = ILike(`%${query.q.trim()}%`);
-      where = [
-        { ...base, name: term },
-        { ...base, username: term },
-        { ...base, email: term },
-        { ...base, phone: term },
-      ];
-    }
     const [rows, total] = await this.users.findAndCount({
       where,
       relations: { department: true, reportingManager: true },
@@ -437,7 +459,7 @@ export class AccountManagementService {
         message: AccountManagementErrMessage.INVALID_USERID,
       });
     }
-    if (!data || !data.sub) {
+    if (!data?.sub) {
       throw rpcErr({
         type: RPCCode.BAD_REQUEST,
         code: AccountManagementErrCodes.INVALID_USERID,
@@ -531,7 +553,7 @@ export class AccountManagementService {
       });
     }
 
-    if (Object.values(AccountStatus).indexOf(status) === -1) {
+    if (Object.values(AccountStatus).includes(status)) {
       throw rpcErr({
         type: RPCCode.BAD_REQUEST,
         code: AccountManagementErrCodes.INVALID_STATUS,
@@ -691,7 +713,7 @@ export class AccountManagementService {
     }
 
     const { roles } = await this.kcService.setRealmRoles(user.sub, role);
-    if (!roles.find((r) => role === r)) {
+    if (!roles.includes(role)) {
       throw rpcErr({
         type: RPCCode.BAD_REQUEST,
         code: AccountManagementErrCodes.INVALID_USERID,
