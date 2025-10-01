@@ -1,8 +1,10 @@
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { HTTP_LOGGER } from '@slamint/core/logging/logger.module';
 
+import { ConfigService } from '@nestjs/config';
+import { ConfigKey } from '@slamint/core';
 import { AppModule } from './app/app.module';
 
 async function bootstrap() {
@@ -18,15 +20,7 @@ async function bootstrap() {
       'This API Gateway provides a unified entry point for all SLA Mint services. It exposes endpoints for health checks, authentication, and downstream service communication, and documents all possible success and error responses using OpenAPI 3.0.'
     )
     .setVersion('1.0.0')
-    .addBearerAuth(
-      {
-        type: 'http',
-        scheme: 'bearer',
-        bearerFormat: 'JWT',
-        description: 'Provide a valid JWT access token to authorize requests.',
-      },
-      'JWT Token'
-    )
+    .addBearerAuth()
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
@@ -47,11 +41,11 @@ async function bootstrap() {
     })
   );
   app.use(app.get(HTTP_LOGGER));
-
-  const port = Number(process.env.PORT) || 8081;
-  await app.listen(port);
+  const configService = app.get(ConfigService);
+  const port = configService.get<number>(ConfigKey.GATEWAY_PORT) ?? 8081;
+  await app.listen(Number(port));
   Logger.log(`🚀 API Gateway at http://localhost:${port}/api`);
-  Logger.log(`🚀 Swagger UI at http://localhost:${port}/api/swagger-ui`);
+  Logger.log(`🧾 Swagger UI at http://localhost:${port}/api/swagger-ui`);
 }
 
-bootstrap();
+bootstrap(); // NOSONAR: top-level await requires ESM; this project uses CommonJS.

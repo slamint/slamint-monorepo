@@ -63,7 +63,6 @@
   ],
   "generators": {
     "@nx/nest:application": {
-      "projectConfig": "project",
       "e2eTestRunner": "none",
       "unitTestRunner": "none",
       "linter": "eslint"

@@ -1,24 +1,29 @@
-import { Module } from '@nestjs/common';
-
-import {
-  AuditService,
-  ResponseInterceptor,
-  AuditInspector,
-  AllExceptionFilter,
-  AuditLog,
-  ConfigKey,
-  MicroserviceClientsModule,
-  LoggingInterceptor,
-  LoggerModule,
-} from '@slamint/core';
-import { AuthModule } from '@slamint/auth';
-import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
+import { MiddlewareConsumer, Module, RequestMethod } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { ServeStaticModule } from '@nestjs/serve-static';
+import { TypeOrmModule } from '@nestjs/typeorm';
 
+import { AuthModule, FirstTimeUserInterceptor } from '@slamint/auth';
+import {
+  AllExceptionFilter,
+  AuditInspector,
+  AuditLog,
+  AuditService,
+  ConfigKey,
+  LoggerModule,
+  LoggingInterceptor,
+  MicroserviceClientsModule,
+  RequestIdMiddleware,
+  ResponseInterceptor,
+} from '@slamint/core';
+
+import { join } from 'node:path';
 import { AppController } from './app.controller';
-import { join } from 'path';
+import { AccMgmtController } from './controllers';
+import { AccMgmtControllerPrivileged } from './controllers/accMgmtPrivileged.controller';
+import { DepartmentController } from './controllers/department.controller';
+
 @Module({
   imports: [
     ServeStaticModule.forRoot({
@@ -44,19 +49,26 @@ import { join } from 'path';
     AuthModule,
     LoggerModule,
   ],
-  controllers: [AppController],
+  controllers: [
+    AppController,
+    AccMgmtController,
+    AccMgmtControllerPrivileged,
+    DepartmentController,
+  ],
   providers: [
-    AuditService,
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: LoggingInterceptor,
-    },
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: ResponseInterceptor,
-    },
+    { provide: APP_INTERCEPTOR, useClass: LoggingInterceptor },
+    { provide: APP_INTERCEPTOR, useClass: FirstTimeUserInterceptor },
+    { provide: APP_INTERCEPTOR, useClass: ResponseInterceptor },
     { provide: APP_INTERCEPTOR, useClass: AuditInspector },
     { provide: APP_FILTER, useClass: AllExceptionFilter },
+    AuditService,
   ],
 })
-export class AppModule {}
+export class AppModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(RequestIdMiddleware).forRoutes({
+      path: '*',
+      method: RequestMethod.ALL,
+    });
+  }
+}

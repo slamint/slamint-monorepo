@@ -1,3 +1,7 @@
 export { AuthModule } from './lib/auth.module';
 
-export { Public, Roles, RoleName, Authenticated } from './lib/roles.decorator';
+export { FirstTimeUserInterceptor } from './lib/firstTimeUser.interceptor';
+
+export { CurrentUser } from './lib/current-user.decorator';
+
+export type { JwtUser, KCRealmRole, KCTokenResp, KCUser } from './lib/keycloak';

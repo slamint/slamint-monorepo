@@ -1,28 +1,17 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import {
-  ApiOkResponseEnvelope,
-  ApiServerGatewayTimeout,
-  HealthDto,
-} from '@slamint/core';
-
-import { Public, Roles, RoleName, Authenticated } from '@slamint/auth';
+import { HealthDto, PublicRoute } from '@slamint/core';
+import { ApiVersion, Controllers, HealthEndPoints } from '@slamint/core/enums';
 
 @ApiTags('Health Checks')
-@Controller('health')
+@Controller(`${Controllers.HEALTH}/${ApiVersion.VERSION_ONE}`)
 export class AppController {
-  @Public()
-  @ApiOkResponseEnvelope(HealthDto)
-  @ApiServerGatewayTimeout()
-  @Get('live')
+  @PublicRoute('GET', HealthEndPoints.LIVE, { model: HealthDto })
   liveness() {
     return { status: 'ok' };
   }
 
-  @Public()
-  @ApiOkResponseEnvelope(HealthDto)
-  @ApiServerGatewayTimeout()
-  @Get('ready')
+  @PublicRoute('GET', HealthEndPoints.READY, { model: HealthDto })
   readiness() {
     return { status: 'ok' };
   }

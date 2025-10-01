@@ -4,9 +4,9 @@ import {
   Injectable,
   NestInterceptor,
 } from '@nestjs/common';
+import type { Request, Response } from 'express';
 import { Observable, tap } from 'rxjs';
 import { AuditService } from '../domain/audit/audit.service';
-import type { Request, Response } from 'express';
 
 type RealmAccess = { roles?: string[] };
 interface AuthUser {
