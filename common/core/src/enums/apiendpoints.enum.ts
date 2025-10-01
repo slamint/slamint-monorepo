@@ -11,6 +11,7 @@ export enum AccountManagementEndPoints {
   GET_USER_BY_ID = 'users/:id',
   CHANGE_STATUS_USER_BY_ID = 'users/:id/change-status',
   UPDATE_DEPARTMENT_USER_BY_ID = 'users/:id/update-department',
+  BULK_UPDATE_MANAGER_USER_BY_ID = 'users/bulk-update-manager',
   UPDATE_MANAGER_USER_BY_ID = 'users/:id/update-manager',
   SEND_EMAIL_USER_BY_ID = 'users/:id/resend-email',
   UPDATE_ROLE_USER_BY_ID = 'users/:id/update-role',

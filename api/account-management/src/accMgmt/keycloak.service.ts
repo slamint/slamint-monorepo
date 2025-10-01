@@ -380,7 +380,11 @@ export class KeycloakService {
 
     const res = await this.kcRequest(
       'PUT',
-      this.admin(`/users/${id}/execute-actions-email`),
+      this.admin(
+        `/users/${id}/execute-actions-email?client_id=${this.cs.get<string>(
+          ConfigKey.OIDC_CLIENT
+        )}&redirect_uri=${this.cs.get<string>(ConfigKey.APP_URL)}`
+      ),
       { headers, data: ['VERIFY_EMAIL', 'UPDATE_PASSWORD'] }
     );
 
@@ -562,5 +566,22 @@ export class KeycloakService {
       { headers: { Authorization: `Bearer ${t}` } }
     );
     return data;
+  }
+
+  async deleteUserByID(kcUserId: string) {
+    try {
+      const t = await this.getAdminToken();
+      await this.kcRequest('DELETE', this.admin(`/users/${kcUserId}`), {
+        headers: { Authorization: `Bearer ${t}` },
+      });
+      return true;
+    } catch (e) {
+      console.debug(e);
+      throw rpcErr({
+        type: RPCCode.INTERNAL_SERVER_ERROR,
+        code: serverError.INTERNAL_SERVER_ERROR,
+        message: ServerErrorMessage.INTERNAL_SERVER_ERROR,
+      });
+    }
   }
 }

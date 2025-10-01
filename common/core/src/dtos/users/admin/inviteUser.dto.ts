@@ -1,6 +1,6 @@
+import { Optional } from '@nestjs/common';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEmail, IsString } from 'class-validator';
-import { RoleName } from '../../../decorators/roles.decorator';
 
 export class InviteUser {
   @ApiProperty({ example: 'John', required: true })
@@ -15,7 +15,26 @@ export class InviteUser {
   @IsEmail()
   email!: string;
 
-  @ApiProperty({ example: 'admin', enum: RoleName, required: true })
+  @ApiProperty({
+    example: '3216becf-ce28-4713-bf68-a2ed7d135496',
+    required: false,
+  })
   @IsString()
-  role!: RoleName;
+  role!: string;
+
+  @ApiProperty({
+    example: '3216becf-ce28-4713-bf68-a2ed7d135496',
+    required: false,
+  })
+  @Optional()
+  @IsString({ message: 'departmentId is required when role is manager' })
+  departmentId!: string;
+
+  @ApiProperty({
+    example: '3216becf-ce28-4713-bf68-a2ed7d135496',
+    required: false,
+  })
+  @Optional()
+  @IsString({ message: 'managerId is required when role is engineer' })
+  managerId!: string;
 }

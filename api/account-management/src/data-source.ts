@@ -1,6 +1,12 @@
+import { Department } from '@slamint/core/entities/department/department.entity';
+import { AppUser } from '@slamint/core/entities/users/user.entity';
+import { config } from 'dotenv';
 import 'dotenv/config';
+import { resolve } from 'node:path';
+import 'reflect-metadata';
 import { DataSource } from 'typeorm';
-import { AppUser, Department } from '../../../common/core/dist/src/entities';
+
+config({ path: resolve(__dirname, '../../../.env') });
 
 const env = (k: string) => {
   const v = process.env[k];

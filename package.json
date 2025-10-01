@@ -4,7 +4,11 @@
   "license": "MIT",
   "scripts": {
     "start:dev": "nx run-many --target=serve --all --configuration=development --output-style=stream --verbose",
-    "build": "nx run-many --target=build --all  --output-style=stream"
+    "build": "nx run-many --target=build --all  --output-style=stream",
+    "accmgmt:migration:create": "cd api/account-management && ../../node_modules/.bin/typeorm migration:create src/migrations/$NAME",
+    "accmgmt:migration:gen": "cd api/account-management && ts-node -r tsconfig-paths/register ../../node_modules/typeorm/cli migration:generate src/migrations/$NAME --pretty -d src/data-source.ts",
+    "accmgmt:migration:run": "cd api/account-management && ts-node -r tsconfig-paths/register ../../node_modules/typeorm/cli migration:run -d src/data-source.ts",
+    "accmgmt:migration:revert": "cd api/account-management && ts-node -r tsconfig-paths/register ../../node_modules/typeorm/cli migration:revert -d src/data-source.ts"
   },
   "private": true,
   "dependencies": {

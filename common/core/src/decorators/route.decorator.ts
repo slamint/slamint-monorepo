@@ -24,7 +24,7 @@ import {
   ApiServerGatewayTimeout,
 } from '../helpers';
 import { Serialize } from '../interceptors/serialize.interceptor';
-import { Authenticated, Roles } from './roles.decorator';
+import { Authenticated, Public, Roles } from './roles.decorator';
 
 type HttpMethod =
   | 'GET'
@@ -128,7 +128,11 @@ export function PublicRoute<T>(
   options?: RouteOptions<T>
 ) {
   const { decorators } = withDocsAndStatus<T>(httpMethod, options);
-  return applyDecorators(METHOD[httpMethod](routePath), ...decorators);
+  return applyDecorators(
+    METHOD[httpMethod](routePath),
+    ...decorators,
+    Public()
+  );
 }
 
 /* --------------------------- Authenticated route -------------------------- */

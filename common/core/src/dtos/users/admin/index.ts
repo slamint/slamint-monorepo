@@ -1,3 +1,7 @@
+export {
+  BulkUpdateManagerDto,
+  BulkUpdateManagerResponseDto,
+} from './bulkUpdateManager.dto';
 export { ChangeStatus } from './changeStatus.dto';
 export { InviteUser } from './inviteUser.dto';
 export { RoleItem } from './rolesList.dto';

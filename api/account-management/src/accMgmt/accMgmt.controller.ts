@@ -14,7 +14,11 @@ import {
   UsersDto,
 } from '@slamint/core';
 
-import type { EnsureFromJwtMsg } from '@slamint/core';
+import type {
+  BulkUpdateManagerDto,
+  BulkUpdateManagerResponseDto,
+  EnsureFromJwtMsg,
+} from '@slamint/core';
 
 import { AccountStatus } from '@slamint/core/entities/users/user.entity';
 import { AccountManagementService } from './accMgmt.service';
@@ -116,5 +120,20 @@ export class AccountManagementController {
     { data }: { data: { id: string } }
   ): Promise<{ status: 'ok' }> {
     return this.svc.sendemail(data.id);
+  }
+  @MessagePattern(AccountManagementCommands.ACC_BULK_CHANGE_MANAGER_BY_ID)
+  bulkUpdateManager(
+    @Payload()
+    { data }: { data: BulkUpdateManagerDto }
+  ): Promise<BulkUpdateManagerResponseDto> {
+    return this.svc.bulkUpdateManager(data);
+  }
+
+  @MessagePattern(AccountManagementCommands.ACC_DELETE_USER_BY_ID)
+  delete(
+    @Payload()
+    { data }: { data: { id: string } }
+  ): Promise<boolean> {
+    return this.svc.deleteById(data.id);
   }
 }

@@ -1,26 +1,28 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { JwtUser } from '@slamint/auth';
-import type {
-  EnsureFromJwtMsg,
-  EnsureFromJwtResult,
-  InviteUser,
-  ListUsersQueryDto,
-  UpdateMe,
-  UsersDto,
-} from '@slamint/core';
 import {
   AccountManagementErrCodes,
   AccountManagementErrMessage,
   AppUser,
+  BulkUpdateManagerDto,
+  BulkUpdateManagerResponseDto,
   Department,
   DepartmentErrCodes,
+  DepartmentErrMessage,
+  EnsureFromJwtMsg,
+  EnsureFromJwtResult,
+  InviteUser,
+  ListUsersQueryDto,
   RoleItem,
   RoleName,
   RPCCode,
   rpcErr,
   serverError,
+  ServerErrorMessage,
+  UpdateMe,
   User,
+  UsersDto,
 } from '@slamint/core';
 import { KCRealmRole } from '@slamint/core/dtos/users/admin/rolesList.dto';
 import { AccountStatus } from '@slamint/core/entities/users/user.entity';
@@ -213,11 +215,75 @@ export class AccountManagementService {
     };
   }
 
+  async getRoles(): Promise<RoleItem[]> {
+    const roles = await this.kcService.getRealmRolesCached();
+
+    return plainToInstance(RoleItem, roles as KCRealmRole[], {
+      excludeExtraneousValues: true,
+      enableImplicitConversion: true,
+    });
+  }
+
   async inviteUser(data: InviteUser): Promise<User> {
+    const roles = await this.getRoles();
+
+    const role = roles.find((r) => r.id === data.role);
+
+    if (!role) {
+      throw rpcErr({
+        type: RPCCode.BAD_REQUEST,
+        code: AccountManagementErrCodes.ROLE_NOT_EXIST,
+        message: AccountManagementErrMessage.INVALID_USERID,
+      });
+    }
+    if (role.name === RoleName.manager) {
+      if (!data.departmentId) {
+        throw rpcErr({
+          type: RPCCode.BAD_REQUEST,
+          code: AccountManagementErrCodes.DEPARTMENT_ID_REQUIRED,
+          message: AccountManagementErrMessage.DEPARTMENT_ID_REQUIRED,
+        });
+      }
+
+      const dept = await this.department.findOne({
+        where: { id: data.departmentId },
+      });
+
+      if (!dept) {
+        throw rpcErr({
+          type: RPCCode.BAD_REQUEST,
+          code: DepartmentErrCodes.DEPT_NOT_FOUND,
+          message: DepartmentErrMessage.DEPT_NOT_FOUND,
+        });
+      }
+    }
+
+    if (role.name === RoleName.engineer) {
+      if (!data.managerId) {
+        throw rpcErr({
+          type: RPCCode.BAD_REQUEST,
+          code: AccountManagementErrCodes.MANAGER_ID_REQUIRED,
+          message: AccountManagementErrMessage.MANAGER_ID_REQUIRED,
+        });
+      }
+      const manager = await this.users.findOne({
+        where: { id: data.managerId, role: RoleName.manager },
+      });
+
+      if (!manager) {
+        throw rpcErr({
+          type: RPCCode.BAD_REQUEST,
+          code: AccountManagementErrCodes.MANAGER_NOT_FOUND,
+          message: AccountManagementErrMessage.MANAGER_NOT_FOUND,
+        });
+      }
+    }
+
     const user: KCUser = await this.kcService.inviteUser(data);
     const name =
       [user.firstName, user.lastName].filter(Boolean).join(' ') ||
       user.username;
+
     await this.users
       .createQueryBuilder()
       .insert()
@@ -226,7 +292,14 @@ export class AccountManagementService {
         email: user.email ?? undefined,
         name: name ?? undefined,
         username: user.username ?? undefined,
-        role: data.role,
+        role: role.name as RoleName,
+        ...(role.name === RoleName.engineer && {
+          reportingManager: { id: data.managerId },
+        }),
+        ...((role.name === RoleName.manager ||
+          role.name === RoleName.engineer) && {
+          department: { id: data.departmentId },
+        }),
       })
       .orIgnore()
       .execute();
@@ -296,8 +369,17 @@ export class AccountManagementService {
 
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
-    const sort = query.sort ?? 'createdAt';
-    const order = query.order ?? 'DESC';
+    const allowedSort = new Set([
+      'createdAt',
+      'name',
+      'lastLoginAt',
+      'role',
+      'status',
+      'id',
+    ]);
+    const sort =
+      query.sort && allowedSort.has(query.sort) ? query.sort : 'createdAt';
+    const order: 'ASC' | 'DESC' = query.order === 'ASC' ? 'ASC' : 'DESC';
 
     const base: FindOptionsWhere<AppUser> = {
       ...(query.role && { role: query.role }),
@@ -449,6 +531,14 @@ export class AccountManagementService {
       });
     }
 
+    if (Object.values(AccountStatus).indexOf(status) === -1) {
+      throw rpcErr({
+        type: RPCCode.BAD_REQUEST,
+        code: AccountManagementErrCodes.INVALID_STATUS,
+        message: AccountManagementErrMessage.INVALID_STATUS,
+      });
+    }
+
     const user = await this.loadUserOrThrow({ id });
 
     this.applyPatch(user, {
@@ -472,7 +562,7 @@ export class AccountManagementService {
       throw rpcErr({
         type: RPCCode.BAD_REQUEST,
         code: DepartmentErrCodes.INVALID_DEPT,
-        message: DepartmentErrCodes.INVALID_DEPT,
+        message: DepartmentErrMessage.INVALID_DEPT,
       });
     }
     const dept = await this.department.findOne({ where: { id: deptId } });
@@ -481,10 +571,18 @@ export class AccountManagementService {
       throw rpcErr({
         type: RPCCode.BAD_REQUEST,
         code: DepartmentErrCodes.DEPT_NOT_FOUND,
-        message: DepartmentErrCodes.DEPT_NOT_FOUND,
+        message: DepartmentErrMessage.DEPT_NOT_FOUND,
       });
     }
     const user = await this.loadUserOrThrow({ id });
+
+    if ([RoleName.admin, RoleName.user].includes(user.role)) {
+      throw rpcErr({
+        type: RPCCode.BAD_REQUEST,
+        code: AccountManagementErrCodes.ROLE_CANNOT_BE_ASSIGNED,
+        message: AccountManagementErrMessage.ROLE_CANNOT_BE_ASSIGNED,
+      });
+    }
 
     this.applyPatch(user, {
       department: dept,
@@ -510,16 +608,43 @@ export class AccountManagementService {
         message: AccountManagementErrMessage.INVALID_MANAGERID,
       });
     }
-    const manager = await this.loadUserOrThrow({ id: managerId });
+    if (id === managerId) {
+      throw rpcErr({
+        type: RPCCode.BAD_REQUEST,
+        code: AccountManagementErrCodes.INVALID_MANAGERID,
+        message: AccountManagementErrMessage.INVALID_MANAGERID,
+      });
+    }
 
-    if (!manager) {
+    const manager = await this.loadUserOrThrow({
+      id: managerId,
+    });
+
+    if (!manager || manager.role !== RoleName.manager) {
       throw rpcErr({
         type: RPCCode.BAD_REQUEST,
         code: AccountManagementErrCodes.MANAGER_NOT_FOUND,
         message: AccountManagementErrMessage.MANAGER_NOT_FOUND,
       });
     }
+
+    if (manager.department === null || manager.department === undefined) {
+      throw rpcErr({
+        type: RPCCode.BAD_REQUEST,
+        code: AccountManagementErrCodes.DEPARTMENT_NOT_ASSIGNED,
+        message: AccountManagementErrMessage.DEPARTMENT_NOT_ASSIGNED,
+      });
+    }
+
     const user = await this.loadUserOrThrow({ id });
+
+    if (user.role !== RoleName.engineer) {
+      throw rpcErr({
+        type: RPCCode.BAD_REQUEST,
+        code: AccountManagementErrCodes.MANAGER_CANNOT_BE_ASSIGNED,
+        message: AccountManagementErrMessage.MANAGER_CANNOT_BE_ASSIGNED,
+      });
+    }
 
     this.applyPatch(user, {
       reportingManager: manager,
@@ -528,15 +653,6 @@ export class AccountManagementService {
 
     const updated = await this.users.save(user);
     return this.toUserDTO(updated, user.role);
-  }
-
-  async getRoles(): Promise<RoleItem[]> {
-    const roles = await this.kcService.getRealmRolesCached();
-
-    return plainToInstance(RoleItem, roles as KCRealmRole[], {
-      excludeExtraneousValues: true,
-      enableImplicitConversion: true,
-    });
   }
 
   async changeRole(id: string, role: RoleName): Promise<User> {
@@ -588,5 +704,126 @@ export class AccountManagementService {
 
     const updated = await this.users.save(user);
     return this.toUserDTO(updated, user.role);
+  }
+
+  async bulkUpdateManager(
+    data: BulkUpdateManagerDto
+  ): Promise<BulkUpdateManagerResponseDto> {
+    if (!data.managerId) {
+      throw rpcErr({
+        type: RPCCode.BAD_REQUEST,
+        code: AccountManagementErrCodes.INVALID_MANAGERID,
+        message: AccountManagementErrMessage.INVALID_MANAGERID,
+      });
+    }
+
+    if (!data.newManagerId) {
+      throw rpcErr({
+        type: RPCCode.BAD_REQUEST,
+        code: AccountManagementErrCodes.INVALID_NEW_MANAGERID,
+        message: AccountManagementErrMessage.INVALID_MANAGERID,
+      });
+    }
+
+    const [oldMgr, newMgr] = await Promise.all([
+      this.loadUserOrThrow({ id: data.managerId }),
+      this.loadUserOrThrow({ id: data.newManagerId }),
+    ]);
+
+    if (!oldMgr || oldMgr.role !== RoleName.manager) {
+      throw rpcErr({
+        type: RPCCode.BAD_REQUEST,
+        code: AccountManagementErrCodes.MANAGER_NOT_FOUND,
+        message: AccountManagementErrMessage.MANAGER_NOT_FOUND,
+      });
+    }
+
+    if (!newMgr || newMgr.role !== RoleName.manager) {
+      throw rpcErr({
+        type: RPCCode.BAD_REQUEST,
+        code: AccountManagementErrCodes.MANAGER_NOT_FOUND,
+        message: AccountManagementErrMessage.MANAGER_NOT_FOUND,
+      });
+    }
+
+    const count = await this.users.count({
+      where: { id: data.managerId, role: RoleName.manager },
+    });
+
+    if (count === 0) {
+      return plainToInstance(
+        BulkUpdateManagerResponseDto,
+        { affected: 0 },
+        {
+          excludeExtraneousValues: true,
+          enableImplicitConversion: true,
+        }
+      );
+    }
+
+    const result = await this.users
+      .createQueryBuilder()
+      .update()
+      .where('reportingManager = :oldManagerId AND role=:role', {
+        oldManagerId: data.managerId,
+        role: RoleName.engineer,
+      })
+      .set({
+        reportingManager: { id: data.newManagerId },
+        department: newMgr.department ? { id: newMgr.department.id } : null,
+      })
+      .execute();
+
+    return plainToInstance(BulkUpdateManagerResponseDto, result, {
+      excludeExtraneousValues: true,
+      enableImplicitConversion: true,
+    });
+  }
+
+  async deleteById(id: string): Promise<boolean> {
+    if (!id) {
+      throw rpcErr({
+        type: RPCCode.BAD_REQUEST,
+        code: AccountManagementErrCodes.INVALID_USERID,
+        message: AccountManagementErrMessage.INVALID_USERID,
+      });
+    }
+
+    const user = await this.loadUserOrThrow({ id });
+
+    if (user.role === RoleName.manager) {
+      const managed = await this.users.count({
+        where: { reportingManager: { id } },
+      });
+
+      if (managed > 0) {
+        throw rpcErr({
+          type: RPCCode.BAD_REQUEST,
+          code: AccountManagementErrCodes.MANAGER_HAS_ENGINEER,
+          message: AccountManagementErrMessage.MANAGER_HAS_ENGINEER,
+        });
+      }
+    }
+    const kcDeleted = await this.kcService.deleteUserByID(user.sub);
+
+    if (!kcDeleted) {
+      throw rpcErr({
+        type: RPCCode.INTERNAL_SERVER_ERROR,
+        code: serverError.INTERNAL_SERVER_ERROR,
+        message: ServerErrorMessage.INTERNAL_SERVER_ERROR,
+      });
+    }
+
+    const result = await this.users.remove(user);
+
+    if (!result) {
+      throw rpcErr({
+        type: RPCCode.INTERNAL_SERVER_ERROR,
+        code: serverError.INTERNAL_SERVER_ERROR,
+        message: ServerErrorMessage.INTERNAL_SERVER_ERROR,
+      });
+    }
+
+    return true;
   }
 }

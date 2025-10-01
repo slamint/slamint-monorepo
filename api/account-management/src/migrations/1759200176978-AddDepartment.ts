@@ -1,6 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class SeedDepartments1758454592301 implements MigrationInterface {
+export class AddDepartment1759200176978 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
   INSERT INTO departments (id, code, name, "isActive")
