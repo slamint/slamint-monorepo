@@ -13,7 +13,6 @@ env:
   REGISTRY: ghcr.io
   DOCKER_REGISTRY: ghcr.io
   DOCKER_NAMESPACE: ${{ github.repository_owner }}
-  TAG: ${{ github.sha }}
 
 jobs:
   docker:
@@ -24,6 +23,24 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Load release metadata
+        run: |
+          if [ ! -f release.env ]; then
+            echo "::error::release.env not found in repository root" >&2
+            exit 1
+          fi
+          set -o allexport
+          source release.env
+          set +o allexport
+          if [ -z "$VERSION" ]; then
+            echo "::error::VERSION is not set inside release.env" >&2
+            exit 1
+          fi
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          echo "BUILD_NUMBER=${GITHUB_RUN_NUMBER}" >> "$GITHUB_ENV"
+          echo "TAG=${VERSION}.${GITHUB_RUN_NUMBER}" >> "$GITHUB_ENV"
+          echo "Resolved image tag: ${VERSION}.${GITHUB_RUN_NUMBER}"
 
       - name: Set up PNPM
         uses: pnpm/action-setup@v3

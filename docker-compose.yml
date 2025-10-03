@@ -29,10 +29,6 @@ services:
   account-management:
     image: ghcr.io/slamint/account-management 
     container_name: account-management
-
-    # build:
-    #   context: .
-    #   dockerfile: api/account-management/Dockerfile
     environment:
       NODE_ENV: production
       ACCMGMT_MS_HOST: 0.0.0.0

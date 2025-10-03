@@ -232,10 +232,11 @@ Each container is self-contained: the build stage compiles the NestJS projects w
 
 ### CI publishing flow
 
-- `pnpm nx run @slamint/account-management:docker-release` → builds the NestJS microservice image and pushes it to `${DOCKER_REGISTRY:-ghcr.io}/${DOCKER_NAMESPACE:-slamint}/account-management:${TAG:-latest}`.
-- `pnpm nx run @slamint/api-gateway:docker-release` → builds & pushes the API gateway image to `${DOCKER_REGISTRY:-ghcr.io}/${DOCKER_NAMESPACE:-slamint}/api-gateway:${TAG:-latest}`.
-- The workflow defined in `.github/workflows/docker-release.yml` logs into GHCR with the GitHub token, runs `nx affected --target=docker-release`, and reuses the target dependency chain so `docker-build` always precedes `docker-push`.
-- Override `DOCKER_NAMESPACE`, `DOCKER_REGISTRY`, or `TAG` in the workflow or manual runs to control where tags land; defaults publish to GHCR under your GitHub org with the commit SHA tag.
+- The base semantic version lives in `release.env` (e.g. `VERSION=1.0.0`). Local or CI builds append a build number to produce tags like `1.0.0.42`.
+- `pnpm nx run @slamint/account-management:docker-release` and `pnpm nx run @slamint/api-gateway:docker-release` build/push their respective images to `${DOCKER_REGISTRY:-ghcr.io}/${DOCKER_NAMESPACE:-slamint}/<service>:${VERSION}.${BUILD_NUMBER}`, and re-tag the same image as `${DOCKER_REGISTRY:-ghcr.io}/${DOCKER_NAMESPACE:-slamint}/<service>:latest`.
+- The workflow in `.github/workflows/docker-release.yml` loads `release.env`, sets `BUILD_NUMBER` to `GITHUB_RUN_NUMBER`, authenticates to GHCR with the built-in `${{ github.token }}`, then runs `nx affected --target=docker-release` so only changed services are rebuilt.
+- Locally, export a `BUILD_NUMBER` (for example `BUILD_NUMBER=42 pnpm docker:release`) to mirror the CI tag; if omitted the helper script falls back to `1.0.0.local`.
+- Override `DOCKER_NAMESPACE` and `DOCKER_REGISTRY` via environment variables or repository secrets if you publish outside GHCR, and set `INCLUDE_LATEST=false` if you ever need to skip the automatic `latest` tag.
 
 ---
 
