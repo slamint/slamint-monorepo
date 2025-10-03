@@ -1,27 +1,99 @@
-version: '3.9'
 volumes:
   slamint:
 services:
   redis:
     image: redis:7-alpine
     container_name: cache
-    command: ["redis-server","--save","","--appendonly","no","--requirepass","${REDIS_PASSWORD}", "--loglevel", "debug"]
+    command: [
+      "redis-server",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+      "--requirepass",
+      "${REDIS_PASSWORD:-changeme}",
+      "--loglevel",
+      "debug"
+    ]
     ports:
       - "6379:6379"
-    # healthcheck:
-    #   test: ["CMD-SHELL","redis-cli -a \"$REDIS_PASSWORD\" ping | grep PONG"]
-    #   interval: 5s
-    #   timeout: 3s
-    #   retries: 10
     restart: unless-stopped
   redis-commander:
       image: rediscommander/redis-commander:latest
       environment:
-        - REDIS_HOSTS=local:cache:6379:0:${REDIS_PASSWORD}
+        - REDIS_HOSTS=local:cache:6379:0:${REDIS_PASSWORD:-changeme}
       ports:
         - 8000:8081
       depends_on:
       - redis
+  account-management:
+    image: ghcr.io/slamint/account-management 
+    container_name: account-management
+    environment:
+      NODE_ENV: production
+      ACCMGMT_MS_HOST: 0.0.0.0
+      ACCMGMT_MS_PORT: 8082
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: ${DB_USER:-sla_mint}
+      DB_PASS: ${DB_PASS:-P@ssword1}
+      DB_NAME: ${DB_NAME:-sla_mint}
+      REDIS_HOST: cache
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-changeme}
+      KEYCLOAK_SERVER_URL: ${KEYCLOAK_SERVER_URL:-http://keycloak:8080}
+      KEYCLOAK_REALM: ${KEYCLOAK_REALM:-slamint}
+      OIDC_ISSUER: ${OIDC_ISSUER:-http://keycloak:8080/realms/slamint}
+      OIDC_CLIENT: ${OIDC_CLIENT:-slamint-api}
+      OIDC_SVC_CLIENT: ${OIDC_SVC_CLIENT:-slamint-svc-acc-bff}
+      OIDC_SVC_CLIENT_SECRET: ${OIDC_SVC_CLIENT_SECRET:-changeme}
+      APP_URL: ${APP_URL:-http://localhost:8081}
+    ports:
+      - "8082:8082"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      keycloak:
+        condition: service_started
+    restart: unless-stopped
+  api-gateway:
+    image: ghcr.io/slamint/api-gateway
+    container_name: api-gateway
+    environment:
+      NODE_ENV: production
+      GATEWAY_HOST: 0.0.0.0
+      GATEWAY_PORT: 8081
+      ACCMGMT_MS_HOST: account-management
+      ACCMGMT_MS_PORT: 8082
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: ${DB_USER:-sla_mint}
+      DB_PASS: ${DB_PASS:-P@ssword1}
+      DB_NAME: ${DB_NAME:-sla_mint}
+      REDIS_HOST: cache
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-changeme}
+      KEYCLOAK_SERVER_URL: ${KEYCLOAK_SERVER_URL:-http://keycloak:8080}
+      KEYCLOAK_REALM: ${KEYCLOAK_REALM:-slamint}
+      OIDC_ISSUER: ${OIDC_ISSUER:-http://keycloak:8080/realms/slamint}
+      OIDC_CLIENT: ${OIDC_CLIENT:-slamint-api}
+      OIDC_SVC_CLIENT: ${OIDC_SVC_CLIENT:-slamint-svc-acc-bff}
+      OIDC_SVC_CLIENT_SECRET: ${OIDC_SVC_CLIENT_SECRET:-changeme}
+      APP_URL: ${APP_URL:-http://localhost:8081}
+    ports:
+      - "8081:8081"
+    depends_on:
+      account-management:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      keycloak:
+        condition: service_started
+    restart: unless-stopped
   keycloak:
     image: quay.io/keycloak/keycloak:24.0
     container_name: keycloak
@@ -56,4 +128,3 @@ services:
       timeout: 5s
       retries: 20
     restart: unless-stopped
-

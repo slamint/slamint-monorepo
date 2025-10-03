@@ -1,0 +1,21 @@
+# Ignore local build artifacts and dependencies
+node_modules
+**/node_modules
+.pnpm-store
+.pnp.*
+coverage
+.tmp
+.tmp/**
+.tmp*
+tmp
+tmp/**
+.DS_Store
+.git
+.gitignore
+nx-cache
+.nx
+**/dist
+**/.turbo
+**/*.log
+.env
+.env.*

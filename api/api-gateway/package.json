@@ -55,6 +55,44 @@
         ],
         "executor": "nx:noop"
       },
+      "docker-build": {
+        "dependsOn": [
+          {
+            "target": "build",
+            "projects": "self"
+          }
+        ],
+        "cache": false,
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "node tools/docker/manage-docker.js api-gateway build api/api-gateway/Dockerfile",
+          "cwd": "."
+        }
+      },
+      "docker-push": {
+        "dependsOn": [
+          {
+            "target": "docker-build",
+            "projects": "self"
+          }
+        ],
+        "cache": false,
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "node tools/docker/manage-docker.js api-gateway push",
+          "cwd": "."
+        }
+      },
+      "docker-release": {
+        "dependsOn": [
+          {
+            "target": "docker-push",
+            "projects": "self"
+          }
+        ],
+        "cache": false,
+        "executor": "nx:noop"
+      },
       "serve": {
         "continuous": true,
         "executor": "@nx/js:node",
@@ -85,7 +123,8 @@
     "cache-manager-redis-store": "^3.0.1",
     "serve-static": "^2.2.0",
     "swagger-ui-dist": "^5.29.0",
-    "swagger-ui-express": "^5.0.1"
+    "swagger-ui-express": "^5.0.1",
+    "tslib": "^2.8.1"
   },
   "devDependencies": {
     "@slamint/auth": "workspace:*",

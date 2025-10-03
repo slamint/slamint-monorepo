@@ -5,6 +5,8 @@
   "scripts": {
     "start:dev": "nx run-many --target=serve --all --configuration=development --output-style=stream --verbose",
     "build": "nx run-many --target=build --all  --output-style=stream",
+    "docker:build": "nx run-many --target=docker-build --projects=@slamint/api-gateway,@slamint/account-management --output-style=stream",
+    "docker:release": "nx run-many --target=docker-release --projects=@slamint/api-gateway,@slamint/account-management --output-style=stream",
     "accmgmt:migration:create": "cd api/account-management && ../../node_modules/.bin/typeorm migration:create src/migrations/$NAME",
     "accmgmt:migration:gen": "cd api/account-management && ts-node -r tsconfig-paths/register ../../node_modules/typeorm/cli migration:generate src/migrations/$NAME --pretty -d src/data-source.ts",
     "accmgmt:migration:run": "cd api/account-management && ts-node -r tsconfig-paths/register ../../node_modules/typeorm/cli migration:run -d src/data-source.ts",

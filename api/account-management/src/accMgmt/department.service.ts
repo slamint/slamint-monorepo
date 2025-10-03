@@ -1,16 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import type {
+import {
   AppUser,
+  Department,
   DepartmentAddOrUpdateDto,
   DepartmentDto,
-  DepartmentsDto,
-  ListDepartmentQueryDto,
-} from '@slamint/core';
-import {
-  Department,
   DepartmentErrCodes,
   DepartmentErrMessage,
+  DepartmentsDto,
+  ListDepartmentQueryDto,
   RPCCode,
   rpcErr,
   serverError,
@@ -42,6 +40,7 @@ export class DepartmentService {
   constructor(
     @InjectRepository(Department)
     private readonly department: Repository<Department>,
+    @InjectRepository(AppUser)
     private readonly accMgmt: Repository<AppUser>
   ) {}
 
