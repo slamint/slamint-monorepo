@@ -27,7 +27,7 @@ services:
       depends_on:
       - redis
   account-management:
-    image: ghcr.io/slamint/account-management 
+    image: ghcr.io/slamint/account-management:latest
     container_name: account-management
     environment:
       NODE_ENV: production
@@ -59,7 +59,7 @@ services:
         condition: service_started
     restart: unless-stopped
   api-gateway:
-    image: ghcr.io/slamint/api-gateway
+    image: ghcr.io/slamint/api-gateway:latest
     container_name: api-gateway
     environment:
       NODE_ENV: production
