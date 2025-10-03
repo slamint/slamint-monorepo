@@ -2,15 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   AppUser,
+  Department,
   DepartmentAddOrUpdateDto,
   DepartmentDto,
-  DepartmentsDto,
-  ListDepartmentQueryDto,
-} from '@slamint/core';
-import {
-  Department,
   DepartmentErrCodes,
   DepartmentErrMessage,
+  DepartmentsDto,
+  ListDepartmentQueryDto,
   RPCCode,
   rpcErr,
   serverError,
