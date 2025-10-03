@@ -196,7 +196,50 @@ SLA Mint is designed to serve multiple **business personas**. Each role has dist
 
 ---
 
-## 🔮 10. Future Plans
+## 🐳 10. Containerized Backends
+
+| Service | Dockerfile | Default Port |
+| ------- | ---------- | ------------ |
+| API Gateway (`@slamint/api-gateway`) | `api/api-gateway/Dockerfile` | `8081` |
+| Account Management (`@slamint/account-management`) | `api/account-management/Dockerfile` | `8082` |
+
+### Build images manually
+
+```bash
+docker build -t slamint-account-management -f api/account-management/Dockerfile .
+docker build -t slamint-api-gateway -f api/api-gateway/Dockerfile .
+```
+
+### Run with Docker Compose
+
+1. (Recommended) Copy `.env.example` to `.env` and override any secrets; if you skip this step the compose file falls back to safe-but-obvious defaults such as `REDIS_PASSWORD=changeme`.
+2. Start the dependency stack and backends:
+
+   ```bash
+   docker compose up -d account-management
+   docker compose up -d api-gateway
+   ```
+
+   Compose will build the images if they are missing and wire them to Postgres, Redis, and Keycloak.
+3. Inspect logs when needed:
+
+   ```bash
+   docker compose logs -f account-management
+   docker compose logs -f api-gateway
+   ```
+
+Each container is self-contained: the build stage compiles the NestJS projects with Nx and prunes dependencies so the runtime layers only contain production packages (including resources bundled under `common/`). Use the `NODE_VERSION` build-arg to pin a different Node.js base if required, e.g. `--build-arg NODE_VERSION=22-slim`.
+
+### CI publishing flow
+
+- `pnpm nx run @slamint/account-management:docker-release` → builds the NestJS microservice image and pushes it to `${DOCKER_REGISTRY:-ghcr.io}/${DOCKER_NAMESPACE:-slamint}/account-management:${TAG:-latest}`.
+- `pnpm nx run @slamint/api-gateway:docker-release` → builds & pushes the API gateway image to `${DOCKER_REGISTRY:-ghcr.io}/${DOCKER_NAMESPACE:-slamint}/api-gateway:${TAG:-latest}`.
+- The workflow defined in `.github/workflows/docker-release.yml` logs into GHCR with the GitHub token, runs `nx affected --target=docker-release`, and reuses the target dependency chain so `docker-build` always precedes `docker-push`.
+- Override `DOCKER_NAMESPACE`, `DOCKER_REGISTRY`, or `TAG` in the workflow or manual runs to control where tags land; defaults publish to GHCR under your GitHub org with the commit SHA tag.
+
+---
+
+## 🔮 11. Future Plans
 
 - 🤖 **AI-driven triage** – Auto-prioritize & route tickets.
 - 🏢 **Enterprise readiness** – RBAC, compliance, advanced audit logs.
@@ -206,7 +249,7 @@ SLA Mint is designed to serve multiple **business personas**. Each role has dist
 
 ---
 
-## 🤝 11. Community & Contribution
+## 🤝 12. Community & Contribution
 
 - **License**: MIT – free to use, modify, and distribute.
 - **Contributions**: PRs, issues, and discussions welcome.
@@ -215,7 +258,7 @@ SLA Mint is designed to serve multiple **business personas**. Each role has dist
 
 ---
 
-## ✅ 12. Conclusion
+## ✅ 13. Conclusion
 
 SLA Mint is more than a tool — it’s a **movement towards open, affordable, and effective service management**.
 
