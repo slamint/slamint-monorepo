@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import * as jwksRsa from 'jwks-rsa';
@@ -12,10 +12,20 @@ import { JwtUser, KcJwtPayload } from './keycloak';
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   config: ConfigService;
   constructor(cs: ConfigService, @Inject(OIDC_CONFIG) oc: OidcConfig) {
+    const aud = thisAudience(cs);
+    const safe = {
+      issuer: oc.issuer,
+      jwksUri: oc.jwksUri,
+      algorithms: oc.algorithms,
+      audience: aud,
+    };
+
+    new Logger(JwtStrategy.name).log({ msg: 'OIDC config', ...safe });
+
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       issuer: oc.issuer,
-      audience: thisAudience(cs),
+      audience: aud,
       algorithms: oc.algorithms,
       secretOrKeyProvider: jwksRsa.passportJwtSecret({
         jwksUri: oc.jwksUri,
@@ -24,6 +34,13 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
         cacheMaxAge: 10 * 60 * 1000,
         rateLimit: true,
         jwksRequestsPerMinute: 10,
+        handleSigningKeyError: (err) => {
+          new Logger(JwtStrategy.name).error({
+            msg: 'JWKS signing key error',
+            name: err?.name,
+            message: err?.message,
+          });
+        },
       }),
       ignoreExpiration: false,
     });
