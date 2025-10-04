@@ -19,6 +19,7 @@ export const configSchema = z.object({
   [ConfigKey.KEYCLOAK_SERVER_URL]: z.url(),
   [ConfigKey.OIDC_ISSUER]: z.string(),
   [ConfigKey.OIDC_CLIENT]: z.string(),
+  [ConfigKey.OIDC_JWKS_URI]: z.url(),
   [ConfigKey.OIDC_SVC_CLIENT]: z.string(),
   [ConfigKey.OIDC_SVC_CLIENT_SECRET]: z.string(),
 
