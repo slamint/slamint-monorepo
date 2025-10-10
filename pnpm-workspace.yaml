@@ -1,14 +1,16 @@
 packages:
-  - 'api/*'
-  - 'common/*'
+  - api/*
+  - common/*
   - '@slamint/*'
+  - web/*
 autoInstallPeers: true
 onlyBuiltDependencies:
   - '@nestjs/core'
   - '@parcel/watcher'
   - '@scarf/scarf'
   - '@swc/core'
-  - 'esbuild'
-  - 'nx'
-  - 'unrs-resolver'
+  - '@tailwindcss/oxide'
+  - esbuild
+  - nx
+  - unrs-resolver
 strictPeerDependencies: false

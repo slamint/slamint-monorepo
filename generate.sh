@@ -31,6 +31,9 @@ case "$TYPE" in
   api)
     CMD=(pnpm nx g @nx/nest:application "api/${NAME}")
     ;;
+  web)
+    CMD=(pnpm nx g @nx/react:app "web/${NAME}")
+    ;;
   *)
     echo "Unknown type: $TYPE (expected lib or api)"
     exit 1

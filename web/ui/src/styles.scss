@@ -1,0 +1,87 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* SLAMint — Light Theme (Mint #3EB489, Navy #1C1F2E, Grey #F8F9FC, Amber #FFB400) */
+    --background: 225 40% 98%;       /* Grey */
+    --foreground: 230 24% 15%;       /* Navy (text) */
+
+    --card: 225 40% 98%;
+    --card-foreground: 230 24% 15%;
+
+    --popover: 225 40% 98%;
+    --popover-foreground: 230 24% 15%;
+
+    --primary: 158 49% 47%;          /* Mint */
+    --primary-foreground: 0 0% 100%; /* White */
+
+    --secondary: 225 30% 96%;        /* Soft grey surface */
+    --secondary-foreground: 230 24% 20%;
+
+    --muted: 225 30% 96%;
+    --muted-foreground: 230 14% 46%;
+
+    --accent: 42 100% 50%;           /* Amber */
+    --accent-foreground: 230 24% 15%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 225 24% 90%;
+    --input: 225 24% 90%;
+    --ring: 158 49% 47%;             /* Mint focus ring */
+
+    /* Charts (brand-leaning) */
+    --chart-1: 158 49% 47%;          /* Mint */
+    --chart-2: 230 24% 35%;          /* Navy mid */
+    --chart-3: 42 100% 50%;          /* Amber */
+    --chart-4: 173 45% 45%;          /* Teal */
+    --chart-5: 197 37% 40%;          /* Blue */
+
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    /* SLAMint — Dark Theme */
+    --background: 230 24% 6%;        /* Deep navy */
+    --foreground: 0 0% 98%;
+
+    --card: 230 24% 8%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 230 24% 8%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 158 49% 47%;          /* Mint stays primary */
+    --primary-foreground: 0 0% 10%;
+
+    --secondary: 230 20% 14%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 230 20% 14%;
+    --muted-foreground: 0 0% 70%;
+
+    --accent: 42 100% 50%;           /* Amber */
+    --accent-foreground: 0 0% 10%;
+
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 230 20% 18%;
+    --input: 230 20% 18%;
+    --ring: 158 49% 47%;
+
+    --chart-1: 158 49% 47%;
+    --chart-2: 42 100% 50%;
+    --chart-3: 197 37% 50%;
+    --chart-4: 173 45% 52%;
+    --chart-5: 230 24% 60%;
+  }
+}
+
+@layer base {
+  * { @apply border-border; }
+  body { @apply bg-background text-foreground; }
+}

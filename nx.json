@@ -1,12 +1,17 @@
 {
   "$schema": "./node_modules/nx/schemas/nx-schema.json",
-  "sync": { "applyChanges": true },
+  "sync": {
+    "applyChanges": true
+  },
   "namedInputs": {
     "default": ["{projectRoot}/**/*", "sharedGlobals"],
     "production": [
       "default",
       "!{projectRoot}/.eslintrc.json",
-      "!{projectRoot}/eslint.config.mjs"
+      "!{projectRoot}/eslint.config.mjs",
+      "!{projectRoot}/**/?(*.)+(spec|test).[jt]s?(x)?(.snap)",
+      "!{projectRoot}/tsconfig.spec.json",
+      "!{projectRoot}/src/test-setup.[jt]s"
     ],
     "sharedGlobals": []
   },
@@ -14,7 +19,9 @@
     {
       "plugin": "@nx/js/typescript",
       "options": {
-        "typecheck": { "targetName": "typecheck" },
+        "typecheck": {
+          "targetName": "typecheck"
+        },
         "build": {
           "targetName": "build",
           "configName": "tsconfig.lib.json",
@@ -36,13 +43,50 @@
         "serveStaticTargetName": "serve-static"
       }
     },
-    { "plugin": "@nx/eslint/plugin", "options": { "targetName": "lint" } },
-    { "plugin": "@nx/docker", "options": {} },
+    {
+      "plugin": "@nx/eslint/plugin",
+      "options": {
+        "targetName": "lint"
+      }
+    },
+    {
+      "plugin": "@nx/docker",
+      "options": {}
+    },
     {
       "plugin": "@nx/js/typescript",
       "include": ["common/core/*", "common/auth/*"],
-      "options": { "typecheck": { "targetName": "typecheck" } },
+      "options": {
+        "typecheck": {
+          "targetName": "typecheck"
+        }
+      },
       "exclude": ["common/auth/*"]
+    },
+    {
+      "plugin": "@nx/react/router-plugin",
+      "options": {
+        "buildTargetName": "build",
+        "devTargetName": "dev",
+        "startTargetName": "start",
+        "watchDepsTargetName": "watch-deps",
+        "buildDepsTargetName": "build-deps",
+        "typecheckTargetName": "typecheck"
+      }
+    },
+    {
+      "plugin": "@nx/vite/plugin",
+      "options": {
+        "buildTargetName": "build",
+        "testTargetName": "test",
+        "serveTargetName": "serve",
+        "devTargetName": "dev",
+        "previewTargetName": "preview",
+        "serveStaticTargetName": "serve-static",
+        "typecheckTargetName": "typecheck",
+        "buildDepsTargetName": "build-deps",
+        "watchDepsTargetName": "watch-deps"
+      }
     }
   ],
   "generators": {
@@ -57,12 +101,31 @@
       "unitTestRunner": "none",
       "linter": "eslint"
     },
-    "@nx/js:library": { "unitTestRunner": "none" },
+    "@nx/js:library": {
+      "unitTestRunner": "none"
+    },
     "@nx/react:application": {
       "e2eTestRunner": "none",
       "unitTestRunner": "none"
     },
-    "@nx/react:library": { "unitTestRunner": "none" }
+    "@nx/react:library": {
+      "unitTestRunner": "none"
+    },
+    "@nx/react": {
+      "application": {
+        "babel": true,
+        "style": "scss",
+        "linter": "eslint",
+        "bundler": "vite"
+      },
+      "component": {
+        "style": "scss"
+      },
+      "library": {
+        "style": "scss",
+        "linter": "eslint"
+      }
+    }
   },
   "targetDefaults": {
     "@nx/esbuild:esbuild": {
@@ -72,7 +135,9 @@
     }
   },
   "release": {
-    "version": { "preVersionCommand": "pnpm dlx nx run-many -t build" }
+    "version": {
+      "preVersionCommand": "pnpm dlx nx run-many -t build"
+    }
   },
   "nxCloudId": "68be09faa17d6bfe0390d66e"
 }
