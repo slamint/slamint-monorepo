@@ -11,6 +11,7 @@ export {
 export { Button, ButtonSize, ButtonVariant } from './ui/button';
 export {
   Card,
+  CardAction,
   CardContent,
   CardDescription,
   CardFooter,
@@ -29,5 +30,6 @@ export {
   TableRow,
 } from './ui/table';
 // Layout
-
+export { DataTable } from './datatable/datatable';
+export type { ServerQueryParams } from './datatable/datatable';
 export { MainLayout } from './layout/main/mainlayout';

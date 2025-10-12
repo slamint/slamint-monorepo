@@ -23,7 +23,7 @@ const CardHeader = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn('flex flex-col space-y-1.5 p-6', className)}
+    className={cn('flex justify-between p-6', className)}
     {...props}
   />
 ));
@@ -36,7 +36,7 @@ const CardTitle = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      'text-lg font-semibold leading-none tracking-tight',
+      'text-2xl font-semibold leading-none tracking-tight',
       className
     )}
     {...props}
@@ -55,6 +55,18 @@ const CardDescription = React.forwardRef<
   />
 ));
 CardDescription.displayName = 'CardDescription';
+
+const CardAction = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn('flex gap-4 justify-end', className)}
+    {...props}
+  />
+));
+CardTitle.displayName = 'CardAction';
 
 const CardContent = React.forwardRef<
   HTMLDivElement,
@@ -78,6 +90,7 @@ CardFooter.displayName = 'CardFooter';
 
 export {
   Card,
+  CardAction,
   CardContent,
   CardDescription,
   CardFooter,
