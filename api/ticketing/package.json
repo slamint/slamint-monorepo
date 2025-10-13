@@ -1,0 +1,129 @@
+{
+  "name": "@slamint/ticketing",
+  "version": "0.0.1",
+  "private": true,
+  "nx": {
+    "targets": {
+      "build": {
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "webpack-cli build",
+          "args": [
+            "--node-env=production"
+          ],
+          "cwd": "api/ticketing"
+        },
+        "configurations": {
+          "development": {
+            "args": [
+              "--node-env=development"
+            ]
+          }
+        }
+      },
+      "prune-lockfile": {
+        "dependsOn": [
+          "build"
+        ],
+        "cache": true,
+        "executor": "@nx/js:prune-lockfile",
+        "outputs": [
+          "{workspaceRoot}/api/ticketing/dist/package.json",
+          "{workspaceRoot}/api/ticketing/dist/pnpm-lock.yaml"
+        ],
+        "options": {
+          "buildTarget": "build"
+        }
+      },
+      "copy-workspace-modules": {
+        "dependsOn": [
+          "build"
+        ],
+        "cache": true,
+        "outputs": [
+          "{workspaceRoot}/api/ticketing/dist/workspace_modules"
+        ],
+        "executor": "@nx/js:copy-workspace-modules",
+        "options": {
+          "buildTarget": "build"
+        }
+      },
+      "prune": {
+        "dependsOn": [
+          "prune-lockfile",
+          "copy-workspace-modules"
+        ],
+        "executor": "nx:noop"
+      },
+      "docker-build": {
+        "dependsOn": [
+          {
+            "target": "build",
+            "projects": "self"
+          }
+        ],
+        "cache": false,
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "node tools/docker/manage-docker.js account-management build api/account-management/Dockerfile",
+          "cwd": "."
+        }
+      },
+      "docker-push": {
+        "dependsOn": [
+          {
+            "target": "docker-build",
+            "projects": "self"
+          }
+        ],
+        "cache": false,
+        "executor": "nx:run-commands",
+        "options": {
+          "command": "node tools/docker/manage-docker.js account-management push",
+          "cwd": "."
+        }
+      },
+      "docker-release": {
+        "dependsOn": [
+          {
+            "target": "docker-push",
+            "projects": "self"
+          }
+        ],
+        "cache": false,
+        "executor": "nx:noop"
+      },
+      "serve": {
+        "continuous": true,
+        "executor": "@nx/js:node",
+        "defaultConfiguration": "development",
+        "dependsOn": [
+          "build"
+        ],
+        "options": {
+          "buildTarget": "@slamint/ticketing:build",
+          "runBuildTargetDependencies": false
+        },
+        "configurations": {
+          "development": {
+            "buildTarget": "@slamint/ticketing:build:development"
+          },
+          "production": {
+            "buildTarget": "@slamint/ticketing:build:production"
+          }
+        }
+      }
+    }
+  },
+  "devDependencies": {
+    "@slamint/auth": "workspace:*",
+    "@slamint/core": "workspace:*"
+  },
+  "dependencies": {
+    "@keyv/redis": "^5.1.2",
+    "@nestjs/cache-manager": "^3.0.1",
+    "cache-manager": "^7.2.2",
+    "cache-manager-redis-store": "^3.0.1",
+    "tslib": "^2.8.1"
+  }
+}

@@ -28,6 +28,9 @@ export const configSchema = z.object({
 
   [ConfigKey.ACCMGMT_MS_HOST]: z.string(),
   [ConfigKey.ACCMGMT_MS_PORT]: z.string().default('8082'),
+
+  [ConfigKey.TICKETING_MS_HOST]: z.string(),
+  [ConfigKey.TICKETING_MS_PORT]: z.string().default('8083'),
 });
 
 export type AppConfig = z.infer<typeof configSchema>;
